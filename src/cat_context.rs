@@ -1,72 +1,13 @@
 use walkdir::WalkDir;
 use mdbook::book::{Book, BookItem};
+
+use std::fs::read_to_string;
+use std::path::{Path, PathBuf};
+use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
-use std::env;
-use std::path::{Path, PathBuf};
-use std::fs::read_to_string;
-use std::collections::HashMap;
-
 use crate::error::CatError;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TeacherCard {
-	pub jmeno:    String,
-	pub email:    String,
-	pub username: String,
-	pub bio:      String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArticleCard {
-	pub nazev:          String,
-	pub tagy:           Vec<String>,
-	pub datum:          Option<String>,
-	pub _resolved_path: Option<PathBuf>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Article {
-	pub card:          ArticleCard,
-	pub last_modified: String,
-	pub modified_by:   String,
-	pub author:        String,
-	pub path:          PathBuf,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubjectCard {
-	pub nazev:            String,
-	pub zodpovedna_osoba: String,
-	pub bio:              String,
-	pub _resolved_path:   Option<PathBuf>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subject {
-	pub card:      SubjectCard,
-	pub path:      PathBuf,
-	pub path_root: PathBuf,
-	pub articles:  Vec<Article>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Teacher {
-	pub card:          TeacherCard,
-	pub subjects:      Vec<Subject>,
-	pub files_created: Vec<PathBuf>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CatContext {
-	pub teacher_cards: Vec<TeacherCard>,
-	pub teachers:      Vec<Teacher>,
-	pub subject_cards: Vec<SubjectCard>,
-	pub subjects:      Vec<Subject>,
-	pub article_cards: Vec<ArticleCard>,
-	pub articles:      Vec<Article>,
-	pub tags:          HashMap<String, Vec<ArticleCard>>,
-}
+use crate::models::*;
 
 pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
 	let header = src
@@ -129,6 +70,17 @@ pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 	Ok(teachers.into_iter().map(|(_, x)| x.unwrap()).collect::<Vec<TeacherCard>>())
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CatContext {
+	pub teacher_cards: Vec<TeacherCard>,
+	pub teachers:      Vec<Teacher>,
+	pub subject_cards: Vec<SubjectCard>,
+	pub subjects:      Vec<Subject>,
+	pub article_cards: Vec<ArticleCard>,
+	pub articles:      Vec<Article>,
+	pub tags:          HashMap<String, Vec<ArticleCard>>,
+}
+
 impl CatContext {
 	pub fn new() -> CatContext {
 		CatContext {
@@ -177,7 +129,7 @@ impl CatContext {
 			return Err(errors[0].clone());
 		}
 
-		let mut subject_items = src
+		let subject_items = src
 			.iter()
 			.filter_map(|x| if let BookItem::Chapter(c) = x { Some(c) } else { None })
 			.filter(|x| x.path.to_str().unwrap().ends_with("subject.md"))
@@ -375,7 +327,7 @@ impl CatContext {
 					|mut acc, x| {
 						x.tagy
 							.iter()
-							.for_each(|y| acc.entry(y.into()).or_insert(vec![x.clone()]).push(x.clone()));
+							.for_each(|y| acc.entry(y.into()).or_insert(vec![]).push(x.clone()));
 
 						acc
 					}

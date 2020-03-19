@@ -13,6 +13,7 @@ use mdbook::errors::Error;
 use mdbook::preprocess::{Preprocessor, PreprocessorContext};
 
 pub mod error;
+pub mod models;
 pub mod cat_context;
 
 use cat_context::CatContext;
@@ -45,6 +46,8 @@ impl Preprocessor for Cat {
 				return Err(e.to_string().into());
 			}
 		};
+
+		eprintln!("{:#?}", context);
 
 		Ok(book)
 	}
