@@ -22,6 +22,7 @@ pub struct ArticleCard {
 	pub nazev: String,
 	pub tagy:  Vec<String>,
 	pub datum: Option<String>,
+	pub _resolved_path: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,9 +43,10 @@ pub struct SubjectCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subject {
-	pub card:     SubjectCard,
-	pub path:     String,
-	pub articles: Vec<Article>,
+	pub card:      SubjectCard,
+	pub path:      PathBuf,
+	pub path_root: PathBuf,
+	pub articles:  Vec<Article>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,26 +66,26 @@ pub struct CatContext {
 }
 
 pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
-    let header = src
-    	.lines()
-    	.take_while(|x| *x != "+++")
-    	.map(|x| x.to_string())
-    	.collect::<Vec<String>>()
-    	.join("\n");
+	let header = src
+		.lines()
+		.take_while(|x| *x != "+++")
+		.map(|x| x.to_string())
+		.collect::<Vec<String>>()
+		.join("\n");
 
-    if header == src {
-        Err(CatError::InvalidOrMissingHeader)?;
-    }
+	if header == src {
+		Err(CatError::InvalidOrMissingHeader)?;
+	}
 
-    let body = src
-    	.lines()
-    	.skip_while(|x| *x != "+++")
-    	.skip(1)
-    	.map(|x| x.to_string())
-    	.collect::<Vec<String>>()
-    	.join("\n");
+	let body = src
+		.lines()
+		.skip_while(|x| *x != "+++")
+		.skip(1)
+		.map(|x| x.to_string())
+		.collect::<Vec<String>>()
+		.join("\n");
 
-    Ok((header, body))
+	Ok((header, body))
 }
 
 pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
@@ -150,47 +152,96 @@ impl CatContext {
 			.collect::<Vec<_>>();
 
 		let mut subject_cards = vec![];
-		let mut subject_roots: Vec<PathBuf> = vec![];
 
 		let mut errors: Vec<_> = vec![];
-		src.for_each_mut(|x| if let BookItem::Chapter(c) = x {
-    		if subject_items.contains(c) {
-        		let (header, body) = match extract_header(&c.content) {
-            		Ok(hb) => hb,
-            		Err(e) => {
-                		errors.push(e);
-                		return;
-            		}
-        		};
-        		c.content = body;
+		src.for_each_mut(|x| {
+			if let BookItem::Chapter(c) = x {
+				if subject_items.contains(c) {
+					let (header, body) = match extract_header(&c.content) {
+						Ok(hb) => hb,
+						Err(e) => {
+							errors.push(e);
+							return;
+						}
+					};
+					c.content = body;
 
-        		let mut card: SubjectCard = match toml::de::from_str(&header) {
-            		Ok(c) => c,
-            		Err(e) => {
-                		errors.push(CatError::InvalidHeaderFormat{ err: e });
-                		return;
-            		}
-        		};
+					let mut card: SubjectCard = match toml::de::from_str(&header) {
+						Ok(c) => c,
+						Err(e) => {
+							errors.push(CatError::InvalidHeaderFormat { err: e });
+							return;
+						}
+					};
 
-        		card._resolved_path = Some(c.path.clone());
+					card._resolved_path = Some(c.path.clone());
 
-        		subject_cards.push(card);
-        		subject_roots.push(c.path.parent().unwrap().to_path_buf())
-    		}
+					subject_cards.push(card);
+				}
+			}
 		});
 
 		if !errors.is_empty() {
-    		errors.iter()
-    			.for_each(|x| eprintln!("[cat-prep] {}", x));
+			errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
 
-    		return Err(errors[0].clone());
+			return Err(errors[0].clone());
 		}
 
+		let mut subjects = subject_cards
+			.iter()
+			.map(|x| Subject {
+				path:      x._resolved_path.clone().unwrap(),
+				path_root: x
+					._resolved_path
+					.clone()
+					.unwrap()
+					.parent()
+					.unwrap()
+					.to_path_buf(),
+				card:      x.clone(),
+				articles:  vec![],
+			})
+			.collect::<Vec<_>>();
+
+		let mut article_cards = vec![];
+
+		src.for_each_mut(|x| {
+			if let BookItem::Chapter(c) = x {
+				if subjects.iter().any(|y| c.path.starts_with(&y.path_root) && c.path.file_name().map(|x| x.to_str().unwrap()) != Some("subject.md")) {
+					let (header, body) = match extract_header(&c.content) {
+						Ok(hb) => hb,
+						Err(e) => {
+							errors.push(e);
+							return;
+						}
+					};
+					c.content = body;
+
+					let mut card: ArticleCard = match toml::de::from_str(&header) {
+						Ok(c) => c,
+						Err(e) => {
+							errors.push(CatError::InvalidHeaderFormat { err: e });
+							return;
+						}
+					};
+
+					card._resolved_path = Some(c.path.clone());
+
+					article_cards.push(card);
+				}
+			}
+		});
+
+		if !errors.is_empty() {
+			errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
+
+			return Err(errors[0].clone());
+		}
 
 		eprintln!("{:#?}", src);
 		eprintln!("{:#?}", subject_cards);
-		eprintln!("{:#?}", subject_roots);
-
+		eprintln!("{:#?}", subjects);
+		eprintln!("{:#?}", article_cards);
 
 		Ok(context)
 	}
