@@ -19,9 +19,9 @@ pub struct TeacherCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArticleCard {
-	pub nazev: String,
-	pub tagy:  Vec<String>,
-	pub datum: Option<String>,
+	pub nazev:          String,
+	pub tagy:           Vec<String>,
+	pub datum:          Option<String>,
 	pub _resolved_path: Option<PathBuf>,
 }
 
@@ -52,8 +52,8 @@ pub struct Subject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Teacher {
-	pub card:     TeacherCard,
-	pub subjects: Vec<Subject>,
+	pub card:          TeacherCard,
+	pub subjects:      Vec<Subject>,
 	pub files_created: Vec<PathBuf>,
 }
 
@@ -240,7 +240,11 @@ impl CatContext {
 
 		src.for_each_mut(|x| {
 			if let BookItem::Chapter(c) = x {
-				if subjects.iter().any(|y| c.path.starts_with(&y.path_root) && c.path.file_name().map(|x| x.to_str().unwrap()) != Some("subject.md")) {
+				if subjects.iter().any(|y| {
+					c.path.starts_with(&y.path_root)
+						&& c.path.file_name().map(|x| x.to_str().unwrap())
+							!= Some("subject.md")
+				}) {
 					let (header, body) = match extract_header(&c.content) {
 						Ok(hb) => hb,
 						Err(e) => {
@@ -274,38 +278,60 @@ impl CatContext {
 		let articles = article_cards
 			.iter()
 			.filter_map(|x| {
-    			let (status, last_modified, error) = sh!("{}", &format!("git log -1 --pretty=\"format:%ci\" -- src/'{}'", x._resolved_path.clone().unwrap().display()));
+				let (status, last_modified, error) = sh!(
+					"{}",
+					&format!(
+						"git log -1 --pretty=\"format:%ci\" -- src/'{}'",
+						x._resolved_path.clone().unwrap().display()
+					)
+				);
 
-    			if status != 0 {
-        			errors.push(CatError::CommandFailed { status, error, name: "git".into() });
-        			return None;
-    			}
+				if status != 0 {
+					errors.push(CatError::CommandFailed {
+						status,
+						error,
+						name: "git".into(),
+					});
+					return None;
+				}
 
-    			let (status, modified_by, error) = sh!("{}", &format!("git log -s -n1 --pretty='format:%an' -- src/'{}'", x._resolved_path.clone().unwrap().display()));
+				let (status, modified_by, error) = sh!(
+					"{}",
+					&format!(
+						"git log -s -n1 --pretty='format:%an' -- src/'{}'",
+						x._resolved_path.clone().unwrap().display()
+					)
+				);
 
-    			if status != 0 {
-        			errors.push(CatError::CommandFailed { status, error, name: "git".into() });
-        			return None;
-    			}
+				if status != 0 {
+					errors.push(CatError::CommandFailed {
+						status,
+						error,
+						name: "git".into(),
+					});
+					return None;
+				}
 
-    			let a = Article {
-        			card: x.clone(),
-        			author: teachers
-        				.iter()
-        				.find(|y| y.files_created.contains(&x._resolved_path.clone().unwrap()))
-        				.map(|y| y.card.jmeno.clone())
-        				.unwrap_or("Neznámý".into()),
-        			modified_by,
-        			last_modified,
-        			path: x._resolved_path.clone().unwrap(),
-    			};
+				let a = Article {
+					card: x.clone(),
+					author: teachers
+						.iter()
+						.find(|y| {
+							y.files_created.contains(&x._resolved_path.clone().unwrap())
+						})
+						.map(|y| y.card.jmeno.clone())
+						.unwrap_or("Neznámý".into()),
+					modified_by,
+					last_modified,
+					path: x._resolved_path.clone().unwrap(),
+				};
 
 				subjects
 					.iter_mut()
 					.find(|y| x._resolved_path.clone().unwrap().starts_with(&y.path_root))
 					.map(|y| y.articles.push(a.clone()));
 
-    			Some(a)
+				Some(a)
 			})
 			.collect::<Vec<_>>();
 
@@ -315,28 +341,27 @@ impl CatContext {
 			return Err(errors[0].clone());
 		}
 
-		subjects
-			.iter()
-			.for_each(|x| {
+		subjects.iter().for_each(|x| {
+			if teachers
+				.iter_mut()
+				.find(|y| y.files_created.contains(&x.path))
+				.map(|y| y.subjects.push(x.clone()))
+				.is_some()
+			{
+				return;
+			}
+
+			for a in &x.articles {
 				if teachers
 					.iter_mut()
-					.find(|y| y.files_created.contains(&x.path))
+					.find(|y| y.files_created.contains(&a.path))
 					.map(|y| y.subjects.push(x.clone()))
 					.is_some()
 				{
 					return;
 				}
-
-				for a in &x.articles {
-					if teachers.iter_mut()
-						.find(|y| y.files_created.contains(&a.path))
-						.map(|y| y.subjects.push(x.clone()))
-						.is_some()
-					{
-						return;
-					}
-				}
-			});
+			}
+		});
 
 		eprintln!("{:#?}", src);
 		eprintln!("{:#?}", subject_cards);

@@ -14,7 +14,10 @@ pub enum CatError {
 	InvalidOrMissingHeader,
 	#[fail(display = "the header has invalid format: {}", err)]
 	InvalidHeaderFormat { err: TomlError },
-	#[fail(display = "failed to run command: {} exited with code {} and output '{}'", name, status, error)]
+	#[fail(
+		display = "failed to run command: {} exited with code {} and output '{}'",
+		name, status, error
+	)]
 	CommandFailed { name: String, status: i32, error: String },
 	#[fail(display = "failed to change directory: {}", error)]
 	CantChdir { error: String }, // because IoError is not Clone, fml
