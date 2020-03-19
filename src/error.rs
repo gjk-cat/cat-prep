@@ -9,4 +9,8 @@ pub enum CatError {
 	TeachersArentFolder,
 	#[fail(display = "invalid teacher file: {}: {}", name, err)]
 	InvalidTeacherCard { name: String, err: TomlError },
+	#[fail(display = "the header is either missing or invalid")]
+	InvalidOrMissingHeader,
+	#[fail(display = "the header has invalid format: {}", err)]
+	InvalidHeaderFormat { err: TomlError },
 }

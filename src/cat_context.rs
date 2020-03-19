@@ -63,6 +63,29 @@ pub struct CatContext {
 	pub articles:      Vec<Article>,
 }
 
+pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
+    let header = src
+    	.lines()
+    	.take_while(|x| *x != "+++")
+    	.map(|x| x.to_string())
+    	.collect::<Vec<String>>()
+    	.join("\n");
+
+    if header == src {
+        Err(CatError::InvalidOrMissingHeader)?;
+    }
+
+    let body = src
+    	.lines()
+    	.skip_while(|x| *x != "+++")
+    	.skip(1)
+    	.map(|x| x.to_string())
+    	.collect::<Vec<String>>()
+    	.join("\n");
+
+    Ok((header, body))
+}
+
 pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 	match Path::new("teachers".into()) {
 		x if !x.exists() => return Err(CatError::NoTeacherFolder),
@@ -113,21 +136,61 @@ impl CatContext {
 		}
 	}
 
-	pub fn with_book(src: &Book) -> Result<CatContext, CatError> {
+	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
 		let context = CatContext::new();
 		let teacher_cards = read_teacher_cards()?;
 
 		eprintln!("{:?}", teacher_cards);
 
-		let subject_items = src
+		let mut subject_items = src
 			.iter()
 			.filter_map(|x| if let BookItem::Chapter(c) = x { Some(c) } else { None })
-			.filter(|x| x.path.to_str().ends_with("subject.md"))
+			.filter(|x| x.path.to_str().unwrap().ends_with("subject.md"))
+			.cloned()
 			.collect::<Vec<_>>();
 
-		eprintln!("{:?}", subject_items);
+		let mut subject_cards = vec![];
+		let mut subject_roots: Vec<PathBuf> = vec![];
 
-		//let subject_roots: Vec<
+		let mut errors: Vec<_> = vec![];
+		src.for_each_mut(|x| if let BookItem::Chapter(c) = x {
+    		if subject_items.contains(c) {
+        		let (header, body) = match extract_header(&c.content) {
+            		Ok(hb) => hb,
+            		Err(e) => {
+                		errors.push(e);
+                		return;
+            		}
+        		};
+        		c.content = body;
+
+        		let mut card: SubjectCard = match toml::de::from_str(&header) {
+            		Ok(c) => c,
+            		Err(e) => {
+                		errors.push(CatError::InvalidHeaderFormat{ err: e });
+                		return;
+            		}
+        		};
+
+        		card._resolved_path = Some(c.path.clone());
+
+        		subject_cards.push(card);
+        		subject_roots.push(c.path.parent().unwrap().to_path_buf())
+    		}
+		});
+
+		if !errors.is_empty() {
+    		errors.iter()
+    			.for_each(|x| eprintln!("[cat-prep] {}", x));
+
+    		return Err(errors[0].clone());
+		}
+
+
+		eprintln!("{:#?}", src);
+		eprintln!("{:#?}", subject_cards);
+		eprintln!("{:#?}", subject_roots);
+
 
 		Ok(context)
 	}

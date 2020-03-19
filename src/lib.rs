@@ -28,14 +28,14 @@ impl Preprocessor for Cat {
 		"cat-preprocessor"
 	}
 
-	fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
+	fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
 		if let Some(cat_cfg) = ctx.config.get_preprocessor(self.name()) {
 			if cat_cfg.contains_key("blow-up") {
 				return Err("Boom!!1!".into());
 			}
 		}
 
-		let context = match CatContext::with_book(&book) {
+		let context = match CatContext::with_book(&mut book) {
 			Ok(c) => c,
 			Err(e) => {
 				eprintln!("[cat prep] failed to create cat context: {}", e);
