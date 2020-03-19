@@ -1,11 +1,11 @@
-use failure::bail;
 use walkdir::WalkDir;
 use mdbook::book::{Book, BookItem};
 use serde::{Serialize, Deserialize};
 
-use std::io::Read;
+use std::env;
 use std::path::{Path, PathBuf};
 use std::fs::read_to_string;
+use std::collections::HashMap;
 
 use crate::error::CatError;
 
@@ -31,6 +31,7 @@ pub struct Article {
 	pub last_modified: String,
 	pub modified_by:   String,
 	pub author:        String,
+	pub path:          PathBuf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,7 +53,8 @@ pub struct Subject {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Teacher {
 	pub card:     TeacherCard,
-	pub subjects: Subject,
+	pub subjects: Vec<Subject>,
+	pub files_created: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +65,7 @@ pub struct CatContext {
 	pub subjects:      Vec<Subject>,
 	pub article_cards: Vec<ArticleCard>,
 	pub articles:      Vec<Article>,
+	pub tags:          HashMap<String, Vec<ArticleCard>>,
 }
 
 pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
@@ -135,14 +138,45 @@ impl CatContext {
 			teachers:      vec![],
 			subjects:      vec![],
 			articles:      vec![],
+			tags:          vec![],
 		}
 	}
 
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
 		let context = CatContext::new();
 		let teacher_cards = read_teacher_cards()?;
+		let mut errors: Vec<_> = vec![];
 
 		eprintln!("{:?}", teacher_cards);
+
+		let mut teachers = teacher_cards
+			.iter()
+			.filter_map(|x| {
+    			let (status, files_created, error) = sh!(
+	    			"git whatchanged --author=\"{}\\|{}\\|{}\" --diff-filter=A --no-commit-id --name-only  | ( xargs ls -d || true ) | xargs -n 1 realpath --relative-to=src", x.jmeno,
+	    			x.email, x.username);
+
+    			if status != 0 {
+        			errors.push(CatError::CommandFailed { status, error, name: "git".into() });
+        			return None;
+    			}
+
+    			Some(Teacher {
+	    			card: x.clone(),
+	    			subjects: vec![],
+	    			files_created: files_created
+	    				.lines()
+	    				.map(PathBuf::from)
+	    				.collect::<Vec<_>>()
+    			})
+			})
+			.collect::<Vec<_>>();
+
+		if !errors.is_empty() {
+			errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
+
+			return Err(errors[0].clone());
+		}
 
 		let mut subject_items = src
 			.iter()
@@ -153,7 +187,6 @@ impl CatContext {
 
 		let mut subject_cards = vec![];
 
-		let mut errors: Vec<_> = vec![];
 		src.for_each_mut(|x| {
 			if let BookItem::Chapter(c) = x {
 				if subject_items.contains(c) {
@@ -238,10 +271,79 @@ impl CatContext {
 			return Err(errors[0].clone());
 		}
 
+		let articles = article_cards
+			.iter()
+			.filter_map(|x| {
+    			let (status, last_modified, error) = sh!("{}", &format!("git log -1 --pretty=\"format:%ci\" -- src/'{}'", x._resolved_path.clone().unwrap().display()));
+
+    			if status != 0 {
+        			errors.push(CatError::CommandFailed { status, error, name: "git".into() });
+        			return None;
+    			}
+
+    			let (status, modified_by, error) = sh!("{}", &format!("git log -s -n1 --pretty='format:%an' -- src/'{}'", x._resolved_path.clone().unwrap().display()));
+
+    			if status != 0 {
+        			errors.push(CatError::CommandFailed { status, error, name: "git".into() });
+        			return None;
+    			}
+
+    			let a = Article {
+        			card: x.clone(),
+        			author: teachers
+        				.iter()
+        				.find(|y| y.files_created.contains(&x._resolved_path.clone().unwrap()))
+        				.map(|y| y.card.jmeno.clone())
+        				.unwrap_or("Neznámý".into()),
+        			modified_by,
+        			last_modified,
+        			path: x._resolved_path.clone().unwrap(),
+    			};
+
+				subjects
+					.iter_mut()
+					.find(|y| x._resolved_path.clone().unwrap().starts_with(&y.path_root))
+					.map(|y| y.articles.push(a.clone()));
+
+    			Some(a)
+			})
+			.collect::<Vec<_>>();
+
+		if !errors.is_empty() {
+			errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
+
+			return Err(errors[0].clone());
+		}
+
+		subjects
+			.iter()
+			.for_each(|x| {
+				if teachers
+					.iter_mut()
+					.find(|y| y.files_created.contains(&x.path))
+					.map(|y| y.subjects.push(x.clone()))
+					.is_some()
+				{
+					return;
+				}
+
+				for a in &x.articles {
+					if teachers.iter_mut()
+						.find(|y| y.files_created.contains(&a.path))
+						.map(|y| y.subjects.push(x.clone()))
+						.is_some()
+					{
+						return;
+					}
+				}
+			});
+
 		eprintln!("{:#?}", src);
 		eprintln!("{:#?}", subject_cards);
 		eprintln!("{:#?}", subjects);
 		eprintln!("{:#?}", article_cards);
+		eprintln!("{:#?}", articles);
+		eprintln!("{:#?}", teachers);
 
 		Ok(context)
 	}

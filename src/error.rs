@@ -1,5 +1,6 @@
 use failure::Fail;
 use toml::de::Error as TomlError;
+//use std::io::Error as IoError;
 
 #[derive(Debug, Fail, Clone)]
 pub enum CatError {
@@ -13,4 +14,8 @@ pub enum CatError {
 	InvalidOrMissingHeader,
 	#[fail(display = "the header has invalid format: {}", err)]
 	InvalidHeaderFormat { err: TomlError },
+	#[fail(display = "failed to run command: {} exited with code {} and output '{}'", name, status, error)]
+	CommandFailed { name: String, status: i32, error: String },
+	#[fail(display = "failed to change directory: {}", error)]
+	CantChdir { error: String }, // because IoError is not Clone, fml
 }

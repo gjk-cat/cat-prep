@@ -5,6 +5,9 @@ extern crate mdbook;
 extern crate walkdir;
 extern crate failure;
 
+#[macro_use]
+extern crate shells;
+
 use mdbook::book::Book;
 use mdbook::errors::Error;
 use mdbook::preprocess::{Preprocessor, PreprocessorContext};

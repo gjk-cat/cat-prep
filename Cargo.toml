@@ -14,3 +14,4 @@ clap = "2"
 serde = { version = "1", features = ["derive"] }
 walkdir = "2"
 failure = "0.1"
+shells = "0.2.0"

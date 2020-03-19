@@ -734,6 +734,7 @@ dependencies = [
  "mdbook",
  "serde",
  "serde_json",
+ "shells",
  "toml",
  "walkdir",
 ]
@@ -1336,6 +1337,12 @@ dependencies = [
  "fake-simd",
  "opaque-debug",
 ]
+
+[[package]]
+name = "shells"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d293d1d5246e244c4ff268aee246f18f42c817bee61f10a951093fdb9518528"
 
 [[package]]
 name = "shlex"
