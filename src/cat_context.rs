@@ -138,12 +138,11 @@ impl CatContext {
 			teachers:      vec![],
 			subjects:      vec![],
 			articles:      vec![],
-			tags:          vec![],
+			tags:          HashMap::new(),
 		}
 	}
 
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
-		let context = CatContext::new();
 		let teacher_cards = read_teacher_cards()?;
 		let mut errors: Vec<_> = vec![];
 
@@ -363,13 +362,24 @@ impl CatContext {
 			}
 		});
 
-		eprintln!("{:#?}", src);
-		eprintln!("{:#?}", subject_cards);
-		eprintln!("{:#?}", subjects);
-		eprintln!("{:#?}", article_cards);
-		eprintln!("{:#?}", articles);
-		eprintln!("{:#?}", teachers);
+		Ok(CatContext {
+			teacher_cards,
+			teachers,
+			subject_cards,
+			subjects,
+			article_cards: article_cards.clone(),
+			articles,
+			tags: article_cards
+				.iter()
+				.fold(HashMap::new(), {
+					|mut acc, x| {
+						x.tagy
+							.iter()
+							.for_each(|y| acc.entry(y.into()).or_insert(vec![x.clone()]).push(x.clone()));
 
-		Ok(context)
+						acc
+					}
+				})
+		})
 	}
 }
