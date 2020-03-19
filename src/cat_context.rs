@@ -95,6 +95,12 @@ impl CatContext {
 	}
 
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
+		let (status, is_inside, error) = sh!("git rev-parse --is-inside-work-tree");
+
+		if status != 0 || !is_inside.parse().unwrap_or(false) {
+			return Err(CatError::NotARepo { error });
+		}
+
 		let teacher_cards = read_teacher_cards()?;
 		let mut errors: Vec<_> = vec![];
 
@@ -321,17 +327,15 @@ impl CatContext {
 			subjects,
 			article_cards: article_cards.clone(),
 			articles,
-			tags: article_cards
-				.iter()
-				.fold(HashMap::new(), {
-					|mut acc, x| {
-						x.tagy
-							.iter()
-							.for_each(|y| acc.entry(y.into()).or_insert(vec![]).push(x.clone()));
+			tags: article_cards.iter().fold(HashMap::new(), {
+				|mut acc, x| {
+					x.tagy.iter().for_each(|y| {
+						acc.entry(y.into()).or_insert(vec![]).push(x.clone())
+					});
 
-						acc
-					}
-				})
+					acc
+				}
+			}),
 		})
 	}
 }

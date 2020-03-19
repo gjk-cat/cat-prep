@@ -21,4 +21,9 @@ pub enum CatError {
 	CommandFailed { name: String, status: i32, error: String },
 	#[fail(display = "failed to change directory: {}", error)]
 	CantChdir { error: String }, // because IoError is not Clone, fml
+	#[fail(
+		display = "mdbook isn't running in a git repository or the repository is bare: {}",
+		error
+	)]
+	NotARepo { error: String },
 }

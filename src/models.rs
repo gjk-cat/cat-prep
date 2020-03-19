@@ -48,4 +48,3 @@ pub struct Teacher {
 	pub subjects:      Vec<Subject>,
 	pub files_created: Vec<PathBuf>,
 }
-
