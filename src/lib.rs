@@ -1,38 +1,52 @@
 extern crate clap;
+extern crate toml;
+extern crate serde;
 extern crate mdbook;
+extern crate walkdir;
+extern crate failure;
 
 use mdbook::book::Book;
 use mdbook::errors::Error;
 use mdbook::preprocess::{Preprocessor, PreprocessorContext};
 
-///	A no-op	preprocessor.
-pub	struct Nop;
+pub mod error;
+pub mod cat_context;
 
-impl Nop {
-	pub	fn new() ->	Nop	{
-		Nop
+use cat_context::CatContext;
+
+/// A no-op preprocessor.
+pub struct Cat;
+
+impl Cat {
+	pub fn new() -> Cat {
+		Cat
 	}
 }
 
-impl Preprocessor for Nop {
+impl Preprocessor for Cat {
 	fn name(&self) -> &str {
-		"nop-preprocessor"
+		"cat-preprocessor"
 	}
 
-	fn run(&self, ctx: &PreprocessorContext, book: Book) ->	Result<Book, Error>	{
-		// In testing we want to tell the preprocessor to blow up by setting a
-		// particular config value
-		if let Some(nop_cfg) = ctx.config.get_preprocessor(self.name())	{
-			if nop_cfg.contains_key("blow-up") {
+	fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
+		if let Some(cat_cfg) = ctx.config.get_preprocessor(self.name()) {
+			if cat_cfg.contains_key("blow-up") {
 				return Err("Boom!!1!".into());
 			}
 		}
 
-		// we *are*	a no-op	preprocessor after all
+		let context = match CatContext::with_book(&book) {
+			Ok(c) => c,
+			Err(e) => {
+				eprintln!("[cat prep] failed to create cat context: {}", e);
+				return Err(e.to_string().into());
+			}
+		};
+
 		Ok(book)
 	}
 
-	fn supports_renderer(&self,	renderer: &str)	-> bool	{
-		renderer !=	"not-supported"
+	fn supports_renderer(&self, renderer: &str) -> bool {
+		renderer != "not-supported"
 	}
 }
