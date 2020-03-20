@@ -16,14 +16,14 @@ source $HOME/.cargo/env
 # instalace potřebných nástrojů
 # debug nám zde stačí, protože chceme kratší deployment
 # generování knih není závodní disciplína
-cargo install --profile=debug mdbook
-cargo install --profile=debug mdbook-cat-prep
+cargo install --debug mdbook
+cargo install --debug mdbook-cat-prep
 
 # reclone je zapotřebí, jelikož defaultní
 # deploy ZEITu vynechává .git složku
-git clone https://github.com/{vlastnik}/{repo}
+git clone https://github.com/gjk-cat/it.gjk.cat
 
-cd {repo}
+cd it.gjk.cat
 
 mdbook build
 
