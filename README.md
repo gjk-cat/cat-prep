@@ -222,11 +222,6 @@ Pozn. Vzhledem k tomu, že v současné době bohužel ZEIT nezachovává `.git`
 tak je uvnitř skriptu příkaz, který repozitář reklonuje a knihu zkompiluje v něm.
 `cat-prep` totiž ke své funkci vyžaduje práci v gitovém repozitáři a čtení jeho historie.
 
-## Logo
-
-![catto](src/img/cat.png)
-- by Redpanda
-
 ## License
 
 Soubor je licencován open-source licencí Fair:
