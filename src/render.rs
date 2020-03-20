@@ -1,6 +1,10 @@
 use std::path::PathBuf;
+use std::convert::From;
+use std::collections::HashMap;
+
 use mdbook::book::Book;
 use tinytemplate::TinyTemplate;
+use serde::{Serialize, Deserialize};
 
 use crate::cat_context::CatContext;
 use crate::error::CatError;
@@ -143,6 +147,58 @@ impl Render for Article {
 	}
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tag {
+    name: String,
+    articles: Vec<ArticleCard>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagContext {
+    tags: Vec<Tag>,
+}
+
+impl From<&HashMap<String, Vec<ArticleCard>>> for TagContext {
+    fn from(src: &HashMap<String, Vec<ArticleCard>>) -> Self {
+        let mut tags = src.iter().map(|(k, v)| (k.clone(), v.clone())).collect::<Vec<_>>();
+        tags.sort_by(|a, b| a.0.cmp(&b.0));
+
+        Self {
+        	tags: tags.into_iter()
+        		.map(|(k, v)| Tag { name: k, articles: v})
+        		.collect::<Vec<_>>()
+        }
+    }
+}
+
+static TAGS_TEMPLATE: &'static str = r#"
+# Tagy
+{{ for tag in tags }} [{tag.name}](#{tag.name}) {{ endfor }}
+
+{{ for tag in tags }}
+<h3 id="{tag.name}">{tag.name}</h3>
+{{ for a in tag.articles }}
+ - [{a.nazev}]({a._resolved_path}){{ endfor }}
+{{ endfor }}
+"#;
+
+impl Render for TagContext {
+	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+		let render_site = PathBuf::from("tags.md");
+		let mut tt = TinyTemplate::new();
+
+		tt.add_template("tags", TAGS_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+		let res = tt
+			.render("tags", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		eprintln!("{}", res);
+
+		Ok(RenderSite::new(render_site, EntirePage(res)))
+	}
+}
+
 pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 	let mut pending_renders: Vec<RenderSite> = vec![];
 	let mut errors: Vec<CatError> = vec![];
@@ -178,6 +234,11 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 		errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
 
 		return Err(errors[0].clone());
+	}
+
+	match TagContext::from(&context.tags).render(context) {
+    	Ok(r) => pending_renders.push(r),
+    	Err(e) => return Err(e),
 	}
 
 	Ok(())

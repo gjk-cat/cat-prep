@@ -101,7 +101,8 @@ impl CatContext {
 			return Err(CatError::NotARepo { error });
 		}
 
-		let teacher_cards = read_teacher_cards()?;
+		let mut teacher_cards = read_teacher_cards()?;
+		teacher_cards.sort_by(|a, b| a.jmeno.cmp(&b.jmeno));
 		let mut errors: Vec<_> = vec![];
 
 		eprintln!("{:?}", teacher_cards);
@@ -177,6 +178,7 @@ impl CatContext {
 
 			return Err(errors[0].clone());
 		}
+		subject_cards.sort_by(|a, b| a.nazev.cmp(&b.nazev));
 
 		let mut subjects = subject_cards
 			.iter()
@@ -194,6 +196,8 @@ impl CatContext {
 				resolved_author: None,
 			})
 			.collect::<Vec<_>>();
+		subjects.sort_by(|a, b| a.card.nazev.cmp(&b.card.nazev));
+
 
 		let mut article_cards = vec![];
 
@@ -227,6 +231,7 @@ impl CatContext {
 				}
 			}
 		});
+		article_cards.sort_by(|a, b| a.nazev.cmp(&b.nazev));
 
 		if !errors.is_empty() {
 			errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
