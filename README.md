@@ -207,6 +207,26 @@ mdbook serve
 ### Šablona
 Alternativně lze využít šablonu z repozitáře <https://github.com/gjk-cat/sablona>
 
+## Automatický deployment na ZEIT.CO
+
+gjk.cat je možné poměrně jednoduše deploynout na platformu [ZEIT.CO](https://zeit.co).
+
+0. Po založení účtu na __ZEIT.co__ si zapněte integraci s Githubem nebo Gitlabem
+1. Importujte repozitář s instancí kočky jako projekt do ZEITu
+2. Při instalaci si jako build command zvolte `sh ./build` a jako výslednou složku `book`. Ostatní hodnoty měnit nemusíte
+3. To by mělo nastavit automatický deployment po přidání nových commitů. Nyní si do repozitáře zkopírujte soubor `build.def` z `cat-prepu`
+4. Zaměňte hodnoty viz soubor a přejmenujte jej na `build`
+5. Po pushnutí by se měl projekt již správně deploynout
+
+Pozn. Vzhledem k tomu, že v současné době bohužel ZEIT nezachovává `.git` složku,
+tak je uvnitř skriptu příkaz, který repozitář reklonuje a knihu zkompiluje v něm.
+`cat-prep` totiž ke své funkci vyžaduje práci v gitovém repozitáři a čtení jeho historie.
+
+## Logo
+
+![catto](src/img/cat.png)
+- by Redpanda
+
 ## License
 
 Soubor je licencován open-source licencí Fair:
