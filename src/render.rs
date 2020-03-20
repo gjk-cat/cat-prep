@@ -34,17 +34,19 @@ pub trait Render {
 
 static TEACHER_TEMPLATE: &'static str = r#"
 <h2 id="{card.username}">{card.jmeno}</h2>
+
 - email: {card.email}
 - username: {card.username}
+
 ### Bio
 {card.bio}
+
 ### Předměty
-{{ for p in subjects }}
-- [{p.card.nazev}]({p.path})
+{{ for p in subjects }} - [{p.card.nazev}]({p.path})
 {{ endfor }}
+
 ### Materiály
-{{ for a in articles }}
-- [{a.card.nazev}]({a.path})
+{{ for a in articles }} - [{a.card.nazev}]({a.path})
 {{ endfor }}
 "#;
 
