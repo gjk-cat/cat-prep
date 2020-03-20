@@ -4,6 +4,7 @@ extern crate serde;
 extern crate mdbook;
 extern crate walkdir;
 extern crate failure;
+extern crate tinytemplate;
 
 #[macro_use]
 extern crate shells;
@@ -14,6 +15,7 @@ use mdbook::preprocess::{Preprocessor, PreprocessorContext};
 
 pub mod error;
 pub mod models;
+pub mod render;
 pub mod cat_context;
 
 use cat_context::CatContext;
@@ -46,6 +48,11 @@ impl Preprocessor for Cat {
 				return Err(e.to_string().into());
 			}
 		};
+
+		if let Err(e) = render::render(&context, &mut book) {
+    		eprintln!("[cat prep] failed to render cat content: {}", e);
+    		return Err(e.to_string().into());
+		}
 
 		eprintln!("{:#?}", context);
 

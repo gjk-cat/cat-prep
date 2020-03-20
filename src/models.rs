@@ -46,5 +46,6 @@ pub struct Subject {
 pub struct Teacher {
 	pub card:          TeacherCard,
 	pub subjects:      Vec<Subject>,
+	pub articles:      Vec<Article>,
 	pub files_created: Vec<PathBuf>,
 }

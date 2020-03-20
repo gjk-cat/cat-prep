@@ -1,6 +1,6 @@
 use failure::Fail;
 use toml::de::Error as TomlError;
-//use std::io::Error as IoError;
+//use tinytemplate::error::Error as TinyError;
 
 #[derive(Debug, Fail, Clone)]
 pub enum CatError {
@@ -26,4 +26,6 @@ pub enum CatError {
 		error
 	)]
 	NotARepo { error: String },
+	#[fail(display = "tiny template encountered an error: {}", error)]
+	TinyError { error: String }, // neither is TinyError :(
 }

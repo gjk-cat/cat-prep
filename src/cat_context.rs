@@ -97,7 +97,7 @@ impl CatContext {
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
 		let (status, is_inside, error) = sh!("git rev-parse --is-inside-work-tree");
 
-		if status != 0 || !is_inside.parse().unwrap_or(false) {
+		if status != 0 || !is_inside.trim().parse().unwrap_or(false) {
 			return Err(CatError::NotARepo { error });
 		}
 
@@ -124,7 +124,8 @@ impl CatContext {
 	    			files_created: files_created
 	    				.lines()
 	    				.map(PathBuf::from)
-	    				.collect::<Vec<_>>()
+	    				.collect::<Vec<_>>(),
+					articles:  vec![],
     			})
 			})
 			.collect::<Vec<_>>();
@@ -320,6 +321,13 @@ impl CatContext {
 			}
 		});
 
+		articles.iter().for_each(|x| {
+			let _ = teachers
+				.iter_mut()
+				.find(|y| y.files_created.contains(&x.path))
+				.map(|y| y.articles.push(x.clone()));
+		});
+
 		Ok(CatContext {
 			teacher_cards,
 			teachers,
@@ -327,15 +335,17 @@ impl CatContext {
 			subjects,
 			article_cards: article_cards.clone(),
 			articles,
-			tags: article_cards.iter().fold(HashMap::new(), {
-				|mut acc, x| {
-					x.tagy.iter().for_each(|y| {
-						acc.entry(y.into()).or_insert(vec![]).push(x.clone())
-					});
+			tags: article_cards
+				.iter()
+				.fold(HashMap::new(), {
+					|mut acc, x| {
+						x.tagy
+							.iter()
+							.for_each(|y| acc.entry(y.into()).or_insert(vec![]).push(x.clone()));
 
-					acc
-				}
-			}),
+						acc
+					}
+				})
 		})
 	}
 }

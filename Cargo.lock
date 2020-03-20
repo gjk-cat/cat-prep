@@ -735,6 +735,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shells",
+ "tinytemplate",
  "toml",
  "walkdir",
 ]
@@ -1533,6 +1534,16 @@ dependencies = [
  "libc",
  "redox_syscall",
  "winapi 0.3.8",
+]
+
+[[package]]
+name = "tinytemplate"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57a3c6667d3e65eb1bc3aed6fd14011c6cbc3a0665218ab7f5daf040b9ec371a"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
