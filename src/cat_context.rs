@@ -403,13 +403,6 @@ impl CatContext {
 			}) {
 				x.modified_resolved = Some(t.card.clone());
 			}
-			if let Some(t) = teachers.iter().find(|t| {
-				x.author == t.card.username
-					|| x.author == t.card.jmeno
-					|| x.author == t.card.email
-			}) {
-				x.resolved_author = Some(t.card.clone());
-			}
 
 			x.subject_card = subjects
 				.iter()
