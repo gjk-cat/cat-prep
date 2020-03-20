@@ -132,6 +132,35 @@ impl Render for Teacher {
 	}
 }
 
+/// šablona pro seznam učitelů
+pub static TEACHER_LIST_TEMPLATE: &'static str = r#"
+{{ for t in list }} [{t.jmeno}](#{t.username}) {{ endfor }}
+"#;
+
+/// tato struktura existuje jako způsob obcházení limitací `tinytemplate`
+#[derive(Debug, Serialize, Clone)]
+pub struct TeacherList {
+    /// karty všech učitelů
+    pub list: Vec<TeacherCard>,
+}
+
+impl Render for TeacherList {
+	fn render(&self, _: &CatContext) -> Result<RenderSite, CatError> {
+		let render_site = PathBuf::from("teachers.md");
+		let mut tt = TinyTemplate::new();
+
+		tt.add_template("teacher", TEACHER_LIST_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+		let res = tt
+			.render("teacher", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		dbg!("{}", &res);
+
+		Ok(RenderSite::new(render_site, Append(res)))
+	}
+}
+
 /// šablona karty předmětu (část před obsahem)
 pub static SUBJECT_PRE_TEMPLATE: &'static str = r#"
 | Název | { card.nazev } |
@@ -291,6 +320,11 @@ pub fn create_renders(
 	let mut pending_renders: Vec<RenderSite> = vec![];
 	let mut errors: Vec<CatError> = vec![];
 
+	match (TeacherList { list: context.teacher_cards.clone() }).render(context) {
+    	Ok(r) => pending_renders.push(r),
+    	Err(e) => return Err(e),
+	}
+
 	context.teachers.iter().for_each(|t| match t.render(context) {
 		Ok(r) => pending_renders.push(r),
 		Err(e) => errors.push(e),
@@ -329,10 +363,11 @@ pub fn create_renders(
 		Err(e) => return Err(e),
 	}
 
+
 	if !context.teacher_cards.is_empty() {
     	book.push_item(BookItem::Chapter(Chapter::new(
     		"Vyučující",
-    		"".to_string(),
+    		"# Vyučující\n".to_string(),
     		"teachers.md".to_string(),
     		vec![],
     	)));
