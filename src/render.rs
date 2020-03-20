@@ -15,9 +15,9 @@ use crate::models::*;
 
 #[derive(Debug, Clone)]
 pub enum RenderType {
-	Top(String),
-	Both(String, String),
+	Prepend(String),
 	Append(String),
+	Both(String, String),
 	EntirePage(String),
 }
 
@@ -259,6 +259,23 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 		vec![],
 	)));
 
+	book
+		.for_each_mut(|c| if let BookItem::Chapter(c) = c {
+    		let path = c.path.clone();
+
+    		pending_renders
+    			.iter()
+    			.filter(|x| x.site == path)
+    			.for_each(|x| match &x.render {
+        			Prepend(s) => c.content = format!("{}\n{}", c.content, s),
+        			Both(pre, post) => c.content = format!("{}\n{}\n{}", pre, c.content, post),
+        			Append(s) => c.content = format!("{}\n{}", c.content, s),
+        			EntirePage(s) => c.content = s.clone(),
+    			});
+
+    		pending_renders
+    			.retain(|x| x.site != c.path);
+		});
 	eprintln!("{:#?}", book);
 
 	Ok(())
