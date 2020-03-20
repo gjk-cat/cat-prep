@@ -359,7 +359,7 @@ impl CatContext {
 		subjects.iter().for_each(|x| {
 			if teachers
 				.iter_mut()
-				.find(|y| y.files_created.contains(&x.path))
+				.find(|y| x.articles.iter().any(|z| y.files_created.contains(&z.path)))
 				.map(|y| y.subjects.push(x.clone()))
 				.is_some()
 			{
