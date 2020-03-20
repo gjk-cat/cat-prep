@@ -3,6 +3,13 @@ name = "mdbook-cat-prep"
 version = "1.0.0"
 authors = ["Lukáš Hozda <luk.hozda@gmail.com>"]
 edition = "2018"
+description = "a preprocessor for mdbook which provides teacher, subject, material and tag functionality"
+homepage = "https://gjk.cat"
+repository = "https://github.com/gjk-cat/cat-prep"
+#documentation = ""
+license = "Fair"
+keywords = ["mdbook", "wiki", "education"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
