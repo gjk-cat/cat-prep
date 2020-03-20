@@ -70,7 +70,7 @@ impl Render for Teacher {
 static SUBJECT_PRE_TEMPLATE: &'static str = r#"
 | Název | { card.nazev } |
 | ----- | -------------- |
-{{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }} | Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
+{{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }}| Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
 | Popis | { card.bio }   |
 "#;
 
@@ -104,6 +104,45 @@ impl Render for Subject {
 	}
 }
 
+static ARTICLE_PRE_TEMPLATE: &'static str = r#"
+| Název | {card.nazev} |
+| ----- | ------------ |
+{{ if resolved_author }}| Autor |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }}| Autor | {author} | {{ endif }}
+{{ if modified_resolved }}| Naposledy upravil |  [{modified_resolved.jmeno}](teachers.md#{modified_resolved.username}) | {{ else }}| Naposledy upravil | {card.zodpovedna_osoba} | {{ endif }}
+| Poslední změna | {last_modified} |
+| Předmět | [{subject_card.nazev}]({subject_card._resolved_path}) |
+{{ if card.datum }}| Datum | {card.datum} |{{endif}}
+"#;
+
+static ARTICLE_POST_TEMPLATE: &'static str = r#"
+#### Tagy
+{{ for tag in card.tagy}} [{tag}](tags.md#{tag}) {{ endfor }}
+"#;
+
+impl Render for Article {
+	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+		let render_site = self.path.clone();
+		let mut tt = TinyTemplate::new();
+
+		tt.add_template("article_pre", ARTICLE_PRE_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+		tt.add_template("article_post", ARTICLE_POST_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		let pre = tt
+			.render("article_pre", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		let post = tt
+			.render("article_post", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		eprintln!("{}\n{}", pre, post);
+
+		Ok(RenderSite::new(render_site, Both(pre, post)))
+	}
+}
+
 pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 	let mut pending_renders: Vec<RenderSite> = vec![];
 	let mut errors: Vec<CatError> = vec![];
@@ -120,6 +159,17 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 	}
 
 	context.subjects.iter().for_each(|t| match t.render(context) {
+		Ok(r) => pending_renders.push(r),
+		Err(e) => errors.push(e),
+	});
+
+	if !errors.is_empty() {
+		errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
+
+		return Err(errors[0].clone());
+	}
+
+	context.articles.iter().for_each(|t| match t.render(context) {
 		Ok(r) => pending_renders.push(r),
 		Err(e) => errors.push(e),
 	});

@@ -24,6 +24,9 @@ pub struct Article {
 	pub modified_by:   String,
 	pub author:        String,
 	pub path:          PathBuf,
+	pub modified_resolved: Option<TeacherCard>,
+	pub resolved_author: Option<TeacherCard>,
+	pub subject_card:  Option<SubjectCard>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

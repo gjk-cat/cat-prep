@@ -234,7 +234,7 @@ impl CatContext {
 			return Err(errors[0].clone());
 		}
 
-		let articles = article_cards
+		let mut articles = article_cards
 			.iter()
 			.filter_map(|x| {
 				let (status, last_modified, error) = sh!(
@@ -283,6 +283,9 @@ impl CatContext {
 					modified_by,
 					last_modified,
 					path: x._resolved_path.clone().unwrap(),
+					modified_resolved: None,
+					resolved_author: None,
+					subject_card: None,
 				};
 
 				subjects
@@ -341,6 +344,35 @@ impl CatContext {
 				.find(|y| y.files_created.contains(&x.path))
 				.map(|y| y.articles.push(x.clone()));
 		});
+
+		articles.iter_mut()
+			.for_each(|x| {
+				if let Some(t) = teachers
+					.iter()
+					.find(
+						|t| x.modified_by == t.card.username
+							|| x.modified_by == t.card.jmeno
+							|| x.modified_by == t.card.email)
+				{
+					x.modified_resolved = Some(t.card.clone());
+				}
+				if let Some(t) = teachers
+					.iter()
+					.find(
+						|t| x.author == t.card.username
+							|| x.author == t.card.jmeno
+							|| x.author == t.card.email)
+				{
+					x.resolved_author = Some(t.card.clone());
+				}
+
+				x.subject_card = subjects
+					.iter()
+					.find(|y| x.path.starts_with(&y.path_root))
+					.map(|y| y.card.clone());
+					//↑ should never be None because to be considered
+					// an article, there needs to be a subject prefix
+			});
 
 		Ok(CatContext {
 			teacher_cards,
