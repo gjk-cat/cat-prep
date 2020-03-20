@@ -1,3 +1,7 @@
+//! ## cat-prep
+//!
+//! vstupní bod knihovny.
+
 extern crate clap;
 extern crate toml;
 extern crate serde;
@@ -20,27 +24,39 @@ pub mod cat_context;
 
 use cat_context::CatContext;
 
-/// A no-op preprocessor.
+/// Samotný preprocesor.
+/// .
+/// Tento preprocesor nepotřebuje žádný state,
+/// mimo [`CatContext`], který je ale hned využit.
+/// Proto si postačí s jednotkovou strukturou.
 pub struct Cat;
 
 impl Cat {
+    /// Vytvoří novou "instanci" preprocesoru
+    ///
+    /// Přestože je tato funkce relativně zbytečná,
+    /// je považována za standardní API preprocesorů
 	pub fn new() -> Cat {
 		Cat
 	}
 }
 
 impl Preprocessor for Cat {
+    /// Název preprocesoru,
+    /// pro použití mdbookem
 	fn name(&self) -> &str {
 		"cat-preprocessor"
 	}
 
-	fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
-		if let Some(cat_cfg) = ctx.config.get_preprocessor(self.name()) {
-			if cat_cfg.contains_key("blow-up") {
-				return Err("Boom!!1!".into());
-			}
-		}
-
+	/// spustí preprocesor i s jeho kontextem.
+	///
+	/// `cat-prep` mdbookový kontext nepotřebuje.
+	/// Tato funkce nejdříve vygeneruje [`CatContext`] potřebný
+	/// pro renderování knihy, a posléze ji vyrenderuje.
+	///
+	/// Je nutno dodat, že už i generování kontextu knihu mutuje
+	/// -> dochází k oddělování headerů od obsahu stránky
+	fn run(&self, _: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
 		let context = match CatContext::with_book(&mut book) {
 			Ok(c) => c,
 			Err(e) => {
@@ -54,11 +70,17 @@ impl Preprocessor for Cat {
 			return Err(e.to_string().into());
 		}
 
-		debug!("{:#?}", context);
+		dbg!("{:#?}", context);
 
 		Ok(book)
 	}
 
+	/// určuje kompatibilitu s různymi renderery.
+	/// Kromě HTML (a tedy i PDF) je však většina rendererů
+	/// teprve v plenkách a není používaná,
+	/// proto zde není omezena kompatibilita
+	/// - každý renderer, který podporuje plnou škálu markdownu
+	/// a základní HTML je schopen použít `cat-prep`
 	fn supports_renderer(&self, renderer: &str) -> bool {
 		renderer != "not-supported"
 	}

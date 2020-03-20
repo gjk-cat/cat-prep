@@ -1,3 +1,8 @@
+//! vstupní bod programu
+//!
+//! jedná se pouze o tenkou nadstavbu nad
+//! knihovnou. Obsahuje poze prostředky
+//! pro komunikaci s `mdBookem` a volá `cat-prep` knihovnu
 extern crate clap;
 
 extern crate serde;
@@ -16,6 +21,7 @@ use std::process;
 
 use cat::Cat;
 
+/// definuje `clap` aplikaci
 pub fn make_app() -> App<'static, 'static> {
 	App::new("cat-preprocessor")
 		.about("A mdbook for preparing study materials")

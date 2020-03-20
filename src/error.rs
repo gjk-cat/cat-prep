@@ -1,3 +1,11 @@
+//! modul obsahující chybový typ
+//! `cat-prepu`
+//!
+//! `cat-prep` používá na zpracování chyb knihovnu
+//! `failure`, které umožňuje jednoduché formátování
+//! a propagaci chyb.
+//!
+//!
 use failure::Fail;
 use toml::de::Error as TomlError;
 //use tinytemplate::error::Error as TinyError;
