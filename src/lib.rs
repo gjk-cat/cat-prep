@@ -65,8 +65,16 @@ impl Preprocessor for Cat {
 			}
 		};
 
-		if let Err(e) = render::render(&context, &mut book) {
-			eprintln!("[cat prep] failed to render cat content: {}", e);
+		let renders = match render::create_renders(&context, &mut book) {
+			Ok(rs) => rs,
+			Err(e) => {
+				eprintln!("[cat prep] failed to prepare renders of cat content: {}", e);
+				return Err(e.to_string().into());
+			}
+		};
+
+		if let Err(e) = render::execute_renders(renders, &mut book) {
+			eprintln!("[cat prep] failed to prepare renders of cat content: {}", e);
 			return Err(e.to_string().into());
 		}
 

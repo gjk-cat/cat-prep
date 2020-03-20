@@ -14,6 +14,8 @@
 use failure::Fail;
 use toml::de::Error as TomlError;
 
+use crate::render::RenderType;
+
 /// výčet obsahující možné chyby
 #[derive(Debug, Fail, Clone)]
 pub enum CatError {
@@ -56,4 +58,7 @@ pub enum CatError {
 	/// v šablonovém enginu `tinytemplate` došlo k chybě
 	#[fail(display = "tiny template encountered an error: {}", error)]
 	TinyError { error: String }, //  TinyError is not Clone :(
+	/// některý render zůstal po zavolání funkce `render::execute_renders` nevyužitý
+	#[fail(display = "orphan renders: {} at {}", render, site)]
+	OrphanRender { site: String, render: RenderType },
 }

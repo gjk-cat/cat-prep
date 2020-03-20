@@ -1,5 +1,6 @@
 //! modul obsahující renderovací funkce tohoto preprocessoru
 
+use std::fmt;
 use std::path::PathBuf;
 use std::convert::From;
 use std::collections::HashMap;
@@ -15,23 +16,45 @@ use crate::cat_context::CatContext;
 use crate::error::CatError;
 use crate::models::*;
 
+/// typ daného renderu (a jeho obsah).
+/// Určuje chování, jakým bude zacházeno
+/// z obsahem článku
 #[derive(Debug, Clone)]
 pub enum RenderType {
+	/// Přidá vyrenderovaný obsah na začátek
 	Prepend(String),
+	/// Přidá vyrenderovaný obsah na konec
 	Append(String),
+	/// Přidá něco na začátek a něco na konec
 	Both(String, String),
+	/// Přepíše stárnku
 	EntirePage(String),
 }
 
 use RenderType::*;
 
+impl fmt::Display for RenderType {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Prepend(_) => write!(f, "Prepend"),
+			Append(_) => write!(f, "Append"),
+			Both(_, _) => write!(f, "Both"),
+			EntirePage(_) => write!(f, "EntirePage"),
+		}
+	}
+}
+
+/// Uchovává informace o daném renderu
 #[derive(Debug, Clone)]
 pub struct RenderSite {
-	site:   PathBuf,
-	render: RenderType,
+	/// soubor, ve kterým má být render proveden
+	pub site:   PathBuf,
+	/// typ a obsah renderu
+	pub render: RenderType,
 }
 
 impl RenderSite {
+	/// vytvoří nový render
 	pub fn new(site: PathBuf, render: RenderType) -> Self {
 		RenderSite { site, render }
 	}
@@ -210,7 +233,10 @@ impl Render for TagContext {
 	}
 }
 
-pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
+pub fn create_renders(
+	context: &CatContext,
+	book: &mut Book,
+) -> Result<Vec<RenderSite>, CatError> {
 	let mut pending_renders: Vec<RenderSite> = vec![];
 	let mut errors: Vec<CatError> = vec![];
 
@@ -265,6 +291,15 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 		vec![],
 	)));
 
+	dbg!("[cat prep] prerender: {:#?}", &book);
+
+	Ok(pending_renders)
+}
+
+pub fn execute_renders(
+	mut pending_renders: Vec<RenderSite>,
+	book: &mut Book,
+) -> Result<(), CatError> {
 	book.for_each_mut(|c| {
 		if let BookItem::Chapter(c) = c {
 			let path = c.path.clone();
@@ -282,7 +317,16 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 			pending_renders.retain(|x| x.site != c.path);
 		}
 	});
-	dbg!("{:#?}", &book);
+
+	if !pending_renders.is_empty() {
+		for RenderSite { site, render } in &pending_renders {
+			println!("[cat-prep] error: oprhan render: {} at {}", render, site.display());
+		}
+		return Err(CatError::OrphanRender {
+			site:   pending_renders[0].site.display().to_string(),
+			render: pending_renders[0].render.clone(),
+		});
+	}
 
 	Ok(())
 }
