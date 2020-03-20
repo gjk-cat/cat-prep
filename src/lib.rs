@@ -1,6 +1,11 @@
 //! ## cat-prep
 //!
-//! vstupní bod knihovny.
+//! vstupní bod knihovny,
+//! obsahuje většinu funkcionality
+//! tohoto preprocesoru.
+//!
+//! Za zmínku stojí zejména moduly
+//! [`cat_context`] a [`render`].
 #![deny(missing_docs)]
 
 extern crate clap;

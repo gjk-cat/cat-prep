@@ -53,13 +53,13 @@ pub enum RenderType {
 use RenderType::*;
 
 impl fmt::Display for RenderType {
-    /// je zapotřebí, aby nám vypisování RenderTypu v
-    /// chybách nekazilo výstup. Tato implementace
-    /// tedy usekne asociovaná data každé varianty
-    /// a vypíše pouze její název.
-    ///
-    /// Pro vypsání nejen názvu, ale i obsahu použijte
-    /// debug formátování ("{:?}" nebo "{:#?}").
+	/// je zapotřebí, aby nám vypisování RenderTypu v
+	/// chybách nekazilo výstup. Tato implementace
+	/// tedy usekne asociovaná data každé varianty
+	/// a vypíše pouze její název.
+	///
+	/// Pro vypsání nejen názvu, ale i obsahu použijte
+	/// debug formátování ("{:?}" nebo "{:#?}").
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Prepend(_) => write!(f, "Prepend"),
@@ -89,13 +89,12 @@ impl RenderSite {
 /// Trait umožňující renderování struktury
 /// jako Markdown/HT?ML
 pub trait Render {
-    /// metoda pro renderování daného typu.
-    ///
-    /// V případě, že renderování selže by měla
-    /// implementace vracet správný chybový typ
+	/// metoda pro renderování daného typu.
+	///
+	/// V případě, že renderování selže by měla
+	/// implementace vracet správný chybový typ
 	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError>;
 }
-
 
 /// šablona karty učitele
 pub static TEACHER_TEMPLATE: &'static str = r#"
@@ -223,7 +222,7 @@ impl Render for Article {
 /// struktura obsahující pár tag - články
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
-    /// samotný tag jako string
+	/// samotný tag jako string
 	pub name:     String,
 	/// seznam článků s tímto tagem
 	pub articles: Vec<ArticleCard>,
@@ -232,7 +231,7 @@ pub struct Tag {
 /// tagový kontext pro `tinytemplate` šablonu
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagContext {
-    /// vektor obsahující prvky typu [`Tag`]
+	/// vektor obsahující prvky typu [`Tag`]
 	pub tags: Vec<Tag>,
 }
 
