@@ -183,21 +183,20 @@ impl CatContext {
 		let mut subjects = subject_cards
 			.iter()
 			.map(|x| Subject {
-				path:      x._resolved_path.clone().unwrap(),
-				path_root: x
+				path:            x._resolved_path.clone().unwrap(),
+				path_root:       x
 					._resolved_path
 					.clone()
 					.unwrap()
 					.parent()
 					.unwrap()
 					.to_path_buf(),
-				card:      x.clone(),
-				articles:  vec![],
+				card:            x.clone(),
+				articles:        vec![],
 				resolved_author: None,
 			})
 			.collect::<Vec<_>>();
 		subjects.sort_by(|a, b| a.card.nazev.cmp(&b.card.nazev));
-
 
 		let mut article_cards = vec![];
 
@@ -330,18 +329,15 @@ impl CatContext {
 			}
 		});
 
-		subjects.iter_mut()
-			.for_each(|x| {
-				if let Some(t) = teachers
-					.iter()
-					.find(
-						|t| x.card.zodpovedna_osoba == t.card.username
-							|| x.card.zodpovedna_osoba == t.card.jmeno
-							|| x.card.zodpovedna_osoba == t.card.email)
-				{
-					x.resolved_author = Some(t.card.clone());
-				}
-			});
+		subjects.iter_mut().for_each(|x| {
+			if let Some(t) = teachers.iter().find(|t| {
+				x.card.zodpovedna_osoba == t.card.username
+					|| x.card.zodpovedna_osoba == t.card.jmeno
+					|| x.card.zodpovedna_osoba == t.card.email
+			}) {
+				x.resolved_author = Some(t.card.clone());
+			}
+		});
 
 		articles.iter().for_each(|x| {
 			let _ = teachers
@@ -350,34 +346,29 @@ impl CatContext {
 				.map(|y| y.articles.push(x.clone()));
 		});
 
-		articles.iter_mut()
-			.for_each(|x| {
-				if let Some(t) = teachers
-					.iter()
-					.find(
-						|t| x.modified_by == t.card.username
-							|| x.modified_by == t.card.jmeno
-							|| x.modified_by == t.card.email)
-				{
-					x.modified_resolved = Some(t.card.clone());
-				}
-				if let Some(t) = teachers
-					.iter()
-					.find(
-						|t| x.author == t.card.username
-							|| x.author == t.card.jmeno
-							|| x.author == t.card.email)
-				{
-					x.resolved_author = Some(t.card.clone());
-				}
+		articles.iter_mut().for_each(|x| {
+			if let Some(t) = teachers.iter().find(|t| {
+				x.modified_by == t.card.username
+					|| x.modified_by == t.card.jmeno
+					|| x.modified_by == t.card.email
+			}) {
+				x.modified_resolved = Some(t.card.clone());
+			}
+			if let Some(t) = teachers.iter().find(|t| {
+				x.author == t.card.username
+					|| x.author == t.card.jmeno
+					|| x.author == t.card.email
+			}) {
+				x.resolved_author = Some(t.card.clone());
+			}
 
-				x.subject_card = subjects
-					.iter()
-					.find(|y| x.path.starts_with(&y.path_root))
-					.map(|y| y.card.clone());
-					//↑ should never be None because to be considered
-					// an article, there needs to be a subject prefix
-			});
+			x.subject_card = subjects
+				.iter()
+				.find(|y| x.path.starts_with(&y.path_root))
+				.map(|y| y.card.clone());
+			//↑ should never be None because to be considered
+			// an article, there needs to be a subject prefix
+		});
 
 		Ok(CatContext {
 			teacher_cards,

@@ -149,26 +149,28 @@ impl Render for Article {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
-    name: String,
-    articles: Vec<ArticleCard>,
+	name:     String,
+	articles: Vec<ArticleCard>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagContext {
-    tags: Vec<Tag>,
+	tags: Vec<Tag>,
 }
 
 impl From<&HashMap<String, Vec<ArticleCard>>> for TagContext {
-    fn from(src: &HashMap<String, Vec<ArticleCard>>) -> Self {
-        let mut tags = src.iter().map(|(k, v)| (k.clone(), v.clone())).collect::<Vec<_>>();
-        tags.sort_by(|a, b| a.0.cmp(&b.0));
+	fn from(src: &HashMap<String, Vec<ArticleCard>>) -> Self {
+		let mut tags =
+			src.iter().map(|(k, v)| (k.clone(), v.clone())).collect::<Vec<_>>();
+		tags.sort_by(|a, b| a.0.cmp(&b.0));
 
-        Self {
-        	tags: tags.into_iter()
-        		.map(|(k, v)| Tag { name: k, articles: v})
-        		.collect::<Vec<_>>()
-        }
-    }
+		Self {
+			tags: tags
+				.into_iter()
+				.map(|(k, v)| Tag { name: k, articles: v })
+				.collect::<Vec<_>>(),
+		}
+	}
 }
 
 static TAGS_TEMPLATE: &'static str = r#"
@@ -237,8 +239,8 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 	}
 
 	match TagContext::from(&context.tags).render(context) {
-    	Ok(r) => pending_renders.push(r),
-    	Err(e) => return Err(e),
+		Ok(r) => pending_renders.push(r),
+		Err(e) => return Err(e),
 	}
 
 	Ok(())

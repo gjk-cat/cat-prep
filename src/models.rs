@@ -19,14 +19,14 @@ pub struct ArticleCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Article {
-	pub card:          ArticleCard,
-	pub last_modified: String,
-	pub modified_by:   String,
-	pub author:        String,
-	pub path:          PathBuf,
+	pub card:              ArticleCard,
+	pub last_modified:     String,
+	pub modified_by:       String,
+	pub author:            String,
+	pub path:              PathBuf,
 	pub modified_resolved: Option<TeacherCard>,
-	pub resolved_author: Option<TeacherCard>,
-	pub subject_card:  Option<SubjectCard>,
+	pub resolved_author:   Option<TeacherCard>,
+	pub subject_card:      Option<SubjectCard>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,10 +39,10 @@ pub struct SubjectCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subject {
-	pub card:      SubjectCard,
-	pub path:      PathBuf,
-	pub path_root: PathBuf,
-	pub articles:  Vec<Article>,
+	pub card:            SubjectCard,
+	pub path:            PathBuf,
+	pub path_root:       PathBuf,
+	pub articles:        Vec<Article>,
 	pub resolved_author: Option<TeacherCard>,
 }
 
