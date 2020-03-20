@@ -233,6 +233,7 @@ impl Render for TagContext {
 	}
 }
 
+/// vytvoří rendery z objektů
 pub fn create_renders(
 	context: &CatContext,
 	book: &mut Book,
@@ -296,6 +297,10 @@ pub fn create_renders(
 	Ok(pending_renders)
 }
 
+/// spustí dané Rendery na knize
+///
+/// jelikož nevyužitý render pravdepodobně znamená chybnou syntaxi,
+/// vrací chybu v případě nevyužitých renderů.
 pub fn execute_renders(
 	mut pending_renders: Vec<RenderSite>,
 	book: &mut Book,
