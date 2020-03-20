@@ -49,11 +49,11 @@ static TEACHER_TEMPLATE: &'static str = r#"
 {card.bio}
 
 ### Předměty
-{{ for p in subjects }} - [{p.card.nazev}]({p.path})
+{{ for p in subjects }} - [{p.card.nazev}](/{p.path})
 {{ endfor }}
 
 ### Materiály
-{{ for a in articles }} - [{a.card.nazev}]({a.path})
+{{ for a in articles }} - [{a.card.nazev}](/{a.path})
 {{ endfor }}
 "#;
 
@@ -77,13 +77,13 @@ impl Render for Teacher {
 static SUBJECT_PRE_TEMPLATE: &'static str = r#"
 | Název | { card.nazev } |
 | ----- | -------------- |
-{{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }}| Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
+{{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](/teachers.md#{resolved_author.username}) | {{ else }}| Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
 | Popis | { card.bio }   |
 "#;
 
 static SUBJECT_POST_TEMPLATE: &'static str = r#"
 ### Seznam materiálů
-{{ for a in articles }} - [{a.card.nazev}]({a.path})
+{{ for a in articles }} - [{a.card.nazev}](/{a.path})
 {{ endfor }}
 "#;
 
@@ -114,16 +114,20 @@ impl Render for Subject {
 static ARTICLE_PRE_TEMPLATE: &'static str = r#"
 | Název | {card.nazev} |
 | ----- | ------------ |
-{{ if resolved_author }}| Autor |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }}| Autor | {author} | {{ endif }}
-{{ if modified_resolved }}| Naposledy upravil |  [{modified_resolved.jmeno}](teachers.md#{modified_resolved.username}) | {{ else }}| Naposledy upravil | {card.zodpovedna_osoba} | {{ endif }}
+{{ if resolved_author }}| Autor |  [{resolved_author.jmeno}](/teachers.md#{resolved_author.username}) | {{ else }}| Autor | {author} | {{ endif }}
+{{ if modified_resolved }}| Naposledy upravil |  [{modified_resolved.jmeno}](/teachers.md#{modified_resolved.username}) | {{ else }}| Naposledy upravil | {card.zodpovedna_osoba} | {{ endif }}
 | Poslední změna | {last_modified} |
-| Předmět | [{subject_card.nazev}]({subject_card._resolved_path}) |
+| Předmět | [{subject_card.nazev}](/{subject_card._resolved_path}) |
 {{ if card.datum }}| Datum | {card.datum} |{{endif}}
 "#;
 
 static ARTICLE_POST_TEMPLATE: &'static str = r#"
 #### Tagy
-{{ for tag in card.tagy}} [{tag}](tags.md#{tag}) {{ endfor }}
+{{ for tag in card.tagy}} [{tag}](/tags.md#{tag}) {{ endfor }}
+
+<div id="disqus_thread"></div>
+<script>var disqus_config = function () \{ this.page.url = window.location.href; this.page.identifier = window.location.href; }; (function() \{ var d = document, s = d.createElement('script'); s.src = 'https://gjk-cat.disqus.com/embed.js'; s.setAttribute('data-timestamp', +new Date()); (d.head || d.body).appendChild(s); })(); </script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 "#;
 
 impl Render for Article {
@@ -183,7 +187,7 @@ static TAGS_TEMPLATE: &'static str = r#"
 {{ for tag in tags }}
 <h3 id="{tag.name}">{tag.name}</h3>
 {{ for a in tag.articles }}
- - [{a.nazev}]({a._resolved_path}){{ endfor }}
+ - [{a.nazev}](/{a._resolved_path}){{ endfor }}
 {{ endfor }}
 "#;
 
