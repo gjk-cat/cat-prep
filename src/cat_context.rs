@@ -1,3 +1,16 @@
+//! modul obsahující kontext `cat-prepu`
+//!
+//! Zde dojde k přečetení všech metadat
+//! a vytvoření společné hierarchie
+//! vyučujících, předmětů, článků
+//! a tagů
+//!
+//! `CatContext` také může být vytvořen
+//! uměle použitím funkce `CatContext::new()`
+//! a zaplněním struktury vlastními prvky.
+//!
+//! Varování: tento modul mutuje kniho
+//! (vymazává headery ze souborů).
 use walkdir::WalkDir;
 use mdbook::book::{Book, BookItem};
 

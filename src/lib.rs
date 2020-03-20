@@ -1,6 +1,7 @@
 //! ## cat-prep
 //!
 //! vstupní bod knihovny.
+#![deny(missing_docs)]
 
 extern crate clap;
 extern crate toml;

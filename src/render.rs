@@ -1,4 +1,23 @@
 //! modul obsahující renderovací funkce tohoto preprocessoru
+//!
+//! V první fázi dojde ke zpracování cat kontextu na seznam
+//! typu [`Vec<RenderSite>`], který obsahuje renderovací příkazy
+//! a jejich cíle.
+//!
+//! Následně je seznam renderů aplikován na knihu.
+//! Vzhledem k tomu, že samotné vytváření renderů
+//! přidává do knihy několik článků, tak obě operace
+//! vyžadují mutabilní přístup ke knize.
+//!
+//! Tvorba renderů je zprostředkována pomocí traity
+//! [`Render`]. Všechny výchozí rendery využívají `tinytemplate`
+//! šablony. Pro `tinytemplate` je nejlepší, když
+//! je šablona statický strig, proto jsou zde všechny
+//! šablony prozatím 'nahardcodované' jako immutabilní
+//! globální stringy.
+//!
+//! V budoucnu by bylo možné využít makra `include_str!()`
+//! k extrakci těchto šablon do vnějších souborů.
 
 use std::fmt;
 use std::path::PathBuf;
@@ -34,6 +53,13 @@ pub enum RenderType {
 use RenderType::*;
 
 impl fmt::Display for RenderType {
+    /// je zapotřebí, aby nám vypisování RenderTypu v
+    /// chybách nekazilo výstup. Tato implementace
+    /// tedy usekne asociovaná data každé varianty
+    /// a vypíše pouze její název.
+    ///
+    /// Pro vypsání nejen názvu, ale i obsahu použijte
+    /// debug formátování ("{:?}" nebo "{:#?}").
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
 			Prepend(_) => write!(f, "Prepend"),
@@ -60,11 +86,19 @@ impl RenderSite {
 	}
 }
 
+/// Trait umožňující renderování struktury
+/// jako Markdown/HT?ML
 pub trait Render {
+    /// metoda pro renderování daného typu.
+    ///
+    /// V případě, že renderování selže by měla
+    /// implementace vracet správný chybový typ
 	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError>;
 }
 
-static TEACHER_TEMPLATE: &'static str = r#"
+
+/// šablona karty učitele
+pub static TEACHER_TEMPLATE: &'static str = r#"
 <h2 id="{card.username}">{card.jmeno}</h2>
 
 - email: {card.email}
@@ -99,14 +133,16 @@ impl Render for Teacher {
 	}
 }
 
-static SUBJECT_PRE_TEMPLATE: &'static str = r#"
+/// šablona karty předmětu (část před obsahem)
+pub static SUBJECT_PRE_TEMPLATE: &'static str = r#"
 | Název | { card.nazev } |
 | ----- | -------------- |
 {{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](/teachers.md#{resolved_author.username}) | {{ else }}| Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
 | Popis | { card.bio }   |
 "#;
 
-static SUBJECT_POST_TEMPLATE: &'static str = r#"
+/// šablona seznamu materiálů v daném předmětu (část za obsahem)
+pub static SUBJECT_POST_TEMPLATE: &'static str = r#"
 ### Seznam materiálů
 {{ for a in articles }} - [{a.card.nazev}](/{a.path})
 {{ endfor }}
@@ -136,7 +172,8 @@ impl Render for Subject {
 	}
 }
 
-static ARTICLE_PRE_TEMPLATE: &'static str = r#"
+/// šablona karty článku (část před obsahem)
+pub static ARTICLE_PRE_TEMPLATE: &'static str = r#"
 | Název | {card.nazev} |
 | ----- | ------------ |
 {{ if resolved_author }}| Autor |  [{resolved_author.jmeno}](/teachers.md#{resolved_author.username}) | {{ else }}| Autor | {author} | {{ endif }}
@@ -146,7 +183,11 @@ static ARTICLE_PRE_TEMPLATE: &'static str = r#"
 {{ if card.datum }}| Datum | {card.datum} |{{endif}}
 "#;
 
-static ARTICLE_POST_TEMPLATE: &'static str = r#"
+/// čablona seznamu tagů u článku (část za obsahem)
+///
+/// tato šablona také embedduje Disqus za účelem zprostředkování
+/// komentářů.
+pub static ARTICLE_POST_TEMPLATE: &'static str = r#"
 #### Tagy
 {{ for tag in card.tagy}} [{tag}](/tags.md#{tag}) {{ endfor }}
 
@@ -179,17 +220,23 @@ impl Render for Article {
 	}
 }
 
+/// struktura obsahující pár tag - články
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
-	name:     String,
-	articles: Vec<ArticleCard>,
+    /// samotný tag jako string
+	pub name:     String,
+	/// seznam článků s tímto tagem
+	pub articles: Vec<ArticleCard>,
 }
 
+/// tagový kontext pro `tinytemplate` šablonu
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagContext {
-	tags: Vec<Tag>,
+    /// vektor obsahující prvky typu [`Tag`]
+	pub tags: Vec<Tag>,
 }
 
+/// konverze z tagové hasmapy na šablonový kontext
 impl From<&HashMap<String, Vec<ArticleCard>>> for TagContext {
 	fn from(src: &HashMap<String, Vec<ArticleCard>>) -> Self {
 		let mut tags =
@@ -205,7 +252,8 @@ impl From<&HashMap<String, Vec<ArticleCard>>> for TagContext {
 	}
 }
 
-static TAGS_TEMPLATE: &'static str = r#"
+/// šablona pro stránku se seznamem tagů a asociovaných článků
+pub static TAGS_TEMPLATE: &'static str = r#"
 # Tagy
 {{ for tag in tags }} [{tag.name}](#{tag.name}) {{ endfor }}
 
@@ -234,6 +282,9 @@ impl Render for TagContext {
 }
 
 /// vytvoří rendery z objektů
+///
+/// zároveň založí stránky `teachers.md`
+/// a `tags.md`.
 pub fn create_renders(
 	context: &CatContext,
 	book: &mut Book,
