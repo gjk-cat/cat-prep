@@ -329,18 +329,23 @@ pub fn create_renders(
 		Err(e) => return Err(e),
 	}
 
-	book.push_item(BookItem::Chapter(Chapter::new(
-		"Vyučující",
-		"".to_string(),
-		"teachers.md".to_string(),
-		vec![],
-	)))
-	.push_item(BookItem::Chapter(Chapter::new(
-		"Tagy",
-		"".to_string(),
-		"tags.md".to_string(),
-		vec![],
-	)));
+	if !context.teacher_cards.is_empty() {
+    	book.push_item(BookItem::Chapter(Chapter::new(
+    		"Vyučující",
+    		"".to_string(),
+    		"teachers.md".to_string(),
+    		vec![],
+    	)));
+	}
+
+	if !context.tags.is_empty() {
+    	book.push_item(BookItem::Chapter(Chapter::new(
+    		"Tagy",
+    		"".to_string(),
+    		"tags.md".to_string(),
+    		vec![],
+    	)));
+	}
 
 	dbg!("[cat prep] prerender: {:#?}", &book);
 
