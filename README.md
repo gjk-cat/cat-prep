@@ -124,7 +124,7 @@ viz <https://rust-lang.github.io/mdBook/>.
 	3. složka ve které je obsahuje soubor `subject.md`
 
 ```sh
-mkdir src/predmety/predmet1
+mkdir -p src/predmety/predmet1
 touch src/predmety/predmet1/subject.md
 kak src/predmety/predmet1/subject.md # nebo libovolný jiný editor
 ```
