@@ -3,11 +3,8 @@ use std::convert::From;
 use std::collections::HashMap;
 
 use mdbook::{
-    BookItem,
-    book::{
-        Book,
-        Chapter,
-    },
+	BookItem,
+	book::{Book, Chapter},
 };
 use tinytemplate::TinyTemplate;
 use serde::{Serialize, Deserialize};
@@ -249,19 +246,18 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 		Err(e) => return Err(e),
 	}
 
-	book
-		.push_item(BookItem::Chapter(Chapter::new(
-    		"Vyučující",
-    		"".to_string(),
-    		"teachers.md".to_string(),
-    		vec![],
-		)))
-		.push_item(BookItem::Chapter(Chapter::new(
-    		"Tagy",
-    		"".to_string(),
-    		"tags.md".to_string(),
-    		vec![],
-		)));
+	book.push_item(BookItem::Chapter(Chapter::new(
+		"Vyučující",
+		"".to_string(),
+		"teachers.md".to_string(),
+		vec![],
+	)))
+	.push_item(BookItem::Chapter(Chapter::new(
+		"Tagy",
+		"".to_string(),
+		"tags.md".to_string(),
+		vec![],
+	)));
 
 	eprintln!("{:#?}", book);
 
