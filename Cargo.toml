@@ -1,13 +1,14 @@
 [package]
 name = "mdbook-cat-prep"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Lukáš Hozda <luk.hozda@gmail.com>"]
 edition = "2018"
 description = "a preprocessor for mdbook which provides teacher, subject, material and tag functionality"
 homepage = "https://gjk.cat"
 repository = "https://github.com/gjk-cat/cat-prep"
-#documentation = ""
+documentation = "https://docs.rs/mdbook-cat-prep/"
 license = "Fair"
+readme = "README.md"
 keywords = ["mdbook", "wiki", "education"]
 
 
