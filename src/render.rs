@@ -206,7 +206,7 @@ pub static ARTICLE_PRE_TEMPLATE: &'static str = r#"
 | Název | {card.nazev} |
 | ----- | ------------ |
 {{ if resolved_author }}| Autor |  [{resolved_author.jmeno}](/teachers.md#{resolved_author.username}) | {{ else }}| Autor | {author} | {{ endif }}
-{{ if modified_resolved }}| Naposledy upravil |  [{modified_resolved.jmeno}](/teachers.md#{modified_resolved.username}) | {{ else }}| Naposledy upravil | {card.zodpovedna_osoba} | {{ endif }}
+{{ if modified_resolved }}| Naposledy upravil |  [{modified_resolved.jmeno}](/teachers.md#{modified_resolved.username}) | {{ else }}| Naposledy upravil | {modified_by} | {{ endif }}
 | Poslední změna | {last_modified} |
 | Předmět | [{subject_card.nazev}](/{subject_card._resolved_path}) |
 {{ if card.datum }}| Datum | {card.datum} |{{endif}}
