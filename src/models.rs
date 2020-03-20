@@ -18,10 +18,10 @@ use serde::{Serialize, Deserialize};
 /// učitele a asociaci předmětů a jednotlivých materiálů
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TeacherCard {
-    /// jméno vyučujícího,
-    /// mělo by být opravdové jméno
-    /// a korespondovat s gitovou
-    /// konfigurační hodnotou `user.name`
+	/// jméno vyučujícího,
+	/// mělo by být opravdové jméno
+	/// a korespondovat s gitovou
+	/// konfigurační hodnotou `user.name`
 	pub jmeno:    String,
 	/// email vyučujícího,
 	/// měl by korespondovat
@@ -41,7 +41,6 @@ pub struct TeacherCard {
 	pub bio:      String,
 }
 
-
 /// Karta článku
 ///
 /// Tato struktura reprezentuje konfigurační
@@ -52,9 +51,9 @@ pub struct TeacherCard {
 /// a generování odkazů na mnoha jiných místech
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArticleCard {
-    /// název článku,
-    /// bude se objevovat v odkazech
-    /// a nahoře v kartě článku
+	/// název článku,
+	/// bude se objevovat v odkazech
+	/// a nahoře v kartě článku
 	pub nazev:          String,
 	/// seznam tagů, které má daný článek
 	/// využit pro vytvoření databáze tagů
@@ -78,7 +77,7 @@ pub struct ArticleCard {
 /// hlavní zdroj informací.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Article {
-    /// karta článku
+	/// karta článku
 	pub card:              ArticleCard,
 	/// kdy byl naposled článek modifikován;
 	/// vypočítáno pomocí gitu.
@@ -116,8 +115,8 @@ pub struct Article {
 /// nebo není dostupný,
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubjectCard {
-    /// název předmětu, bude použit ve všech odkazech
-    /// a seznamech.
+	/// název předmětu, bude použit ve všech odkazech
+	/// a seznamech.
 	pub nazev:            String,
 	/// osoba zodpovědná za daný předmět,
 	/// buď hlavní vyučující, nebo vyučující
@@ -139,7 +138,7 @@ pub struct SubjectCard {
 /// kategorizace článků a podobně.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subject {
-    /// karta předmětu
+	/// karta předmětu
 	pub card:            SubjectCard,
 	/// cesta k předmětu
 	pub path:            PathBuf,
@@ -163,7 +162,7 @@ pub struct Subject {
 /// Jedná se o stěžejní strukturu pro generování výstupu.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Teacher {
-    /// karta učitele
+	/// karta učitele
 	pub card:          TeacherCard,
 	/// předměty, na kterých se
 	/// vyučující podílel
