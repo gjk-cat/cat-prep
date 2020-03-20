@@ -1,3 +1,5 @@
+//! modul obsahující renderovací funkce tohoto preprocessoru
+
 use std::path::PathBuf;
 use std::convert::From;
 use std::collections::HashMap;
@@ -58,7 +60,7 @@ static TEACHER_TEMPLATE: &'static str = r#"
 "#;
 
 impl Render for Teacher {
-	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+	fn render(&self, _: &CatContext) -> Result<RenderSite, CatError> {
 		let render_site = PathBuf::from("teachers.md");
 		let mut tt = TinyTemplate::new();
 
@@ -88,7 +90,7 @@ static SUBJECT_POST_TEMPLATE: &'static str = r#"
 "#;
 
 impl Render for Subject {
-	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+	fn render(&self, _: &CatContext) -> Result<RenderSite, CatError> {
 		let render_site = self.path.clone();
 		let mut tt = TinyTemplate::new();
 
@@ -131,7 +133,7 @@ static ARTICLE_POST_TEMPLATE: &'static str = r#"
 "#;
 
 impl Render for Article {
-	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+	fn render(&self, _: &CatContext) -> Result<RenderSite, CatError> {
 		let render_site = self.path.clone();
 		let mut tt = TinyTemplate::new();
 
@@ -192,7 +194,7 @@ static TAGS_TEMPLATE: &'static str = r#"
 "#;
 
 impl Render for TagContext {
-	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+	fn render(&self, _: &CatContext) -> Result<RenderSite, CatError> {
 		let render_site = PathBuf::from("tags.md");
 		let mut tt = TinyTemplate::new();
 

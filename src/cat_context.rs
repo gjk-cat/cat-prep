@@ -9,6 +9,7 @@ use serde::{Serialize, Deserialize};
 use crate::error::CatError;
 use crate::models::*;
 
+/// funkce, která vykrojí header daného stringu
 pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
 	let header = src
 		.lines()
@@ -32,6 +33,10 @@ pub fn extract_header(src: &str) -> Result<(String, String), CatError> {
 	Ok((header, body))
 }
 
+/// přečte karty učitelů
+/// bohužel, čtení ostatních karet je již
+/// více provázané, což znesnadňuje
+/// jejich oddělení do vlastních funkcí
 pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 	match Path::new("teachers".into()) {
 		x if !x.exists() => return Err(CatError::NoTeacherFolder),
@@ -70,18 +75,46 @@ pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 	Ok(teachers.into_iter().map(|(_, x)| x.unwrap()).collect::<Vec<TeacherCard>>())
 }
 
+/// Cat kontext
+///
+/// Typ obsahující kompletní kotext `cat-prepu`.
+/// Jednotlivé struktury obsahují spoustu redundance,
+/// za účelem jednoduchého vyhledávání potřebných informací.
+/// Nedoporučuje se tedy tento instance tohoto typu
+/// po vytvoření mutovat, protože redudantní kopie jednotlivých
+/// objektů si mohou přestat vzájemně odpovídat
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CatContext {
+pub struct CatContext{
+	/// obsahuje karty jednotlivých kantorů
 	pub teacher_cards: Vec<TeacherCard>,
+	/// profily vyučujících
 	pub teachers:      Vec<Teacher>,
+	/// karty předmětů
 	pub subject_cards: Vec<SubjectCard>,
+	/// předměty
 	pub subjects:      Vec<Subject>,
+	/// karty článků
 	pub article_cards: Vec<ArticleCard>,
+	/// články
 	pub articles:      Vec<Article>,
+	/// obsahuje hashmapu tagů
+	///
+	/// tagy jsou sesbírány z jednotlivých
+	/// článků, jako hodnoty pak figurují články,
+	/// které mají daný tag přidělený
+	///
+	/// při renderování je tato hashmapa zkonvertována
+	/// na typ `TagContext`, který je prakticky newtype
+	/// pattern na typu `Vec<(String, Vec<ArticleCard>)>`.
+	///
+	/// `TagContext` je následně využit jako šablonový
+	/// kontext pro generování stránky s tagy.
 	pub tags:          HashMap<String, Vec<ArticleCard>>,
 }
 
 impl CatContext {
+	/// vygeneruje prázdný [`CatContext`].
+	/// Užitečné pro generování umělého kontextu
 	pub fn new() -> CatContext {
 		CatContext {
 			teacher_cards: vec![],
@@ -94,6 +127,9 @@ impl CatContext {
 		}
 	}
 
+	/// vygeneruje kontext dle knihy.
+	/// Tato funkce knihuju mutuje, protože odděluje headery
+	/// od obsahu jednotlivých souborů
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
 		let (status, is_inside, error) = sh!("git rev-parse --is-inside-work-tree");
 
