@@ -50,8 +50,8 @@ impl Preprocessor for Cat {
 		};
 
 		if let Err(e) = render::render(&context, &mut book) {
-    		eprintln!("[cat prep] failed to render cat content: {}", e);
-    		return Err(e.to_string().into());
+			eprintln!("[cat prep] failed to render cat content: {}", e);
+			return Err(e.to_string().into());
 		}
 
 		eprintln!("{:#?}", context);

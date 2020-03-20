@@ -335,17 +335,15 @@ impl CatContext {
 			subjects,
 			article_cards: article_cards.clone(),
 			articles,
-			tags: article_cards
-				.iter()
-				.fold(HashMap::new(), {
-					|mut acc, x| {
-						x.tagy
-							.iter()
-							.for_each(|y| acc.entry(y.into()).or_insert(vec![]).push(x.clone()));
+			tags: article_cards.iter().fold(HashMap::new(), {
+				|mut acc, x| {
+					x.tagy.iter().for_each(|y| {
+						acc.entry(y.into()).or_insert(vec![]).push(x.clone())
+					});
 
-						acc
-					}
-				})
+					acc
+				}
+			}),
 		})
 	}
 }
