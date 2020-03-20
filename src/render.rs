@@ -68,7 +68,7 @@ impl Render for Teacher {
 			.render("teacher", &self)
 			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
 
-		eprintln!("{}", res);
+		debug!("{}", res);
 
 		Ok(RenderSite::new(render_site, Append(res)))
 	}
@@ -105,7 +105,7 @@ impl Render for Subject {
 			.render("subject_post", &self)
 			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
 
-		eprintln!("{}\n{}", pre, post);
+		debug!("{}\n{}", pre, post);
 
 		Ok(RenderSite::new(render_site, Both(pre, post)))
 	}
@@ -148,7 +148,7 @@ impl Render for Article {
 			.render("article_post", &self)
 			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
 
-		eprintln!("{}\n{}", pre, post);
+		debug!("{}\n{}", pre, post);
 
 		Ok(RenderSite::new(render_site, Both(pre, post)))
 	}
@@ -202,7 +202,7 @@ impl Render for TagContext {
 			.render("tags", &self)
 			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
 
-		eprintln!("{}", res);
+		debug!("{}", res);
 
 		Ok(RenderSite::new(render_site, EntirePage(res)))
 	}
@@ -280,7 +280,7 @@ pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 			pending_renders.retain(|x| x.site != c.path);
 		}
 	});
-	eprintln!("{:#?}", book);
+	debug!("{:#?}", book);
 
 	Ok(())
 }

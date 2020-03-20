@@ -54,7 +54,7 @@ impl Preprocessor for Cat {
 			return Err(e.to_string().into());
 		}
 
-		eprintln!("{:#?}", context);
+		debug!("{:#?}", context);
 
 		Ok(book)
 	}
