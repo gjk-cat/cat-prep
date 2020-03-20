@@ -191,6 +191,7 @@ impl CatContext {
 					.to_path_buf(),
 				card:      x.clone(),
 				articles:  vec![],
+				resolved_author: None,
 			})
 			.collect::<Vec<_>>();
 
@@ -320,6 +321,19 @@ impl CatContext {
 				}
 			}
 		});
+
+		subjects.iter_mut()
+			.for_each(|x| {
+				if let Some(t) = teachers
+					.iter()
+					.find(
+						|t| x.card.zodpovedna_osoba == t.card.username
+							|| x.card.zodpovedna_osoba == t.card.jmeno
+							|| x.card.zodpovedna_osoba == t.card.email)
+				{
+					x.resolved_author = Some(t.card.clone());
+				}
+			});
 
 		articles.iter().for_each(|x| {
 			let _ = teachers

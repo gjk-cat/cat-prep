@@ -40,6 +40,7 @@ pub struct Subject {
 	pub path:      PathBuf,
 	pub path_root: PathBuf,
 	pub articles:  Vec<Article>,
+	pub resolved_author: Option<TeacherCard>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

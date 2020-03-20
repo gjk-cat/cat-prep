@@ -9,7 +9,7 @@ use crate::models::*;
 #[derive(Debug, Clone)]
 pub enum RenderType {
 	Top(String),
-	Both(String),
+	Both(String, String),
 	Append(String),
 	EntirePage(String),
 }
@@ -67,11 +67,59 @@ impl Render for Teacher {
 	}
 }
 
+static SUBJECT_PRE_TEMPLATE: &'static str = r#"
+| Název | { card.nazev } |
+| ----- | -------------- |
+{{ if resolved_author }}| Zodpovědná osoba |  [{resolved_author.jmeno}](teachers.md#{resolved_author.username}) | {{ else }} | Zodpovědná osoba | {card.zodpovedna_osoba} | {{ endif }}
+| Popis | { card.bio }   |
+"#;
+
+static SUBJECT_POST_TEMPLATE: &'static str = r#"
+### Seznam materiálů
+{{ for a in articles }} - [{a.card.nazev}]({a.path})
+{{ endfor }}
+"#;
+
+impl Render for Subject {
+	fn render(&self, context: &CatContext) -> Result<RenderSite, CatError> {
+		let render_site = self.path.clone();
+		let mut tt = TinyTemplate::new();
+
+		tt.add_template("subject_pre", SUBJECT_PRE_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+		tt.add_template("subject_post", SUBJECT_POST_TEMPLATE)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		let pre = tt
+			.render("subject_pre", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		let post = tt
+			.render("subject_post", &self)
+			.map_err(|e| CatError::TinyError { error: e.to_string() })?;
+
+		eprintln!("{}\n{}", pre, post);
+
+		Ok(RenderSite::new(render_site, Both(pre, post)))
+	}
+}
+
 pub fn render(context: &CatContext, book: &mut Book) -> Result<(), CatError> {
 	let mut pending_renders: Vec<RenderSite> = vec![];
 	let mut errors: Vec<CatError> = vec![];
 
 	context.teachers.iter().for_each(|t| match t.render(context) {
+		Ok(r) => pending_renders.push(r),
+		Err(e) => errors.push(e),
+	});
+
+	if !errors.is_empty() {
+		errors.iter().for_each(|x| eprintln!("[cat-prep] {}", x));
+
+		return Err(errors[0].clone());
+	}
+
+	context.subjects.iter().for_each(|t| match t.render(context) {
 		Ok(r) => pending_renders.push(r),
 		Err(e) => errors.push(e),
 	});
