@@ -21,9 +21,9 @@ cargo install --debug mdbook-cat-prep
 
 # reclone je zapotřebí, jelikož defaultní
 # deploy ZEITu vynechává .git složku
-git clone https://github.com/gjk-cat/it.gjk.cat
+git clone https://github.com/{vlastnik}/{repo}
 
-cd it.gjk.cat
+cd {repo}
 
 mdbook build
 
