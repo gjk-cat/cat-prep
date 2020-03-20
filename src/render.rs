@@ -100,7 +100,7 @@ pub trait Render {
 pub static TEACHER_TEMPLATE: &'static str = r#"
 <h2 id="{card.username}">{card.jmeno}</h2>
 
-- email: {card.email}
+- email: <a href="mailto:{card.email}">{card.email}</a>
 - username: {card.username}
 
 ### Bio
@@ -113,6 +113,7 @@ pub static TEACHER_TEMPLATE: &'static str = r#"
 ### Materiály
 {{ for a in articles }} - [{a.card.nazev}](/{a.path})
 {{ endfor }}
+<hr>
 "#;
 
 impl Render for Teacher {
