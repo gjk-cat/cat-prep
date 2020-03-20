@@ -84,7 +84,7 @@ pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 /// po vytvoření mutovat, protože redudantní kopie jednotlivých
 /// objektů si mohou přestat vzájemně odpovídat
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CatContext{
+pub struct CatContext {
 	/// obsahuje karty jednotlivých kantorů
 	pub teacher_cards: Vec<TeacherCard>,
 	/// profily vyučujících

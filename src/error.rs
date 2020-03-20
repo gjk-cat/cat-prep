@@ -17,7 +17,7 @@ use toml::de::Error as TomlError;
 /// výčet obsahující možné chyby
 #[derive(Debug, Fail, Clone)]
 pub enum CatError {
-    /// Složka `teachers` neexistuje
+	/// Složka `teachers` neexistuje
 	#[fail(display = "teachers folder doesn't exist")]
 	NoTeacherFolder,
 	/// Soubor `teachers` není složka

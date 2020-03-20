@@ -32,18 +32,18 @@ use cat_context::CatContext;
 pub struct Cat;
 
 impl Cat {
-    /// Vytvoří novou "instanci" preprocesoru
-    ///
-    /// Přestože je tato funkce relativně zbytečná,
-    /// je považována za standardní API preprocesorů
+	/// Vytvoří novou "instanci" preprocesoru
+	///
+	/// Přestože je tato funkce relativně zbytečná,
+	/// je považována za standardní API preprocesorů
 	pub fn new() -> Cat {
 		Cat
 	}
 }
 
 impl Preprocessor for Cat {
-    /// Název preprocesoru,
-    /// pro použití mdbookem
+	/// Název preprocesoru,
+	/// pro použití mdbookem
 	fn name(&self) -> &str {
 		"cat-preprocessor"
 	}
