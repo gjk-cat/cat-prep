@@ -83,7 +83,7 @@ theme = "src/theme" # kde src/theme vede k naklonovanému kočičkovému tématu
 # Zvířátka preferována
 ```
 
-0. Poté je zapotřebí vytvořit složku `teachers` a, pokud možno,
+1. Poté je zapotřebí vytvořit složku `teachers` a, pokud možno,
 prvního učitele pro váš účet.
 
 ```sh
@@ -115,13 +115,13 @@ fringilla eget dui. Quisque *tristique* pulvinar fringilla.
 """
 ```
 
-0. Následně je možné vytvořit libovolné stránky, které nejsou součástí předmětů,
+2. Následně je možné vytvořit libovolné stránky, které nejsou součástí předmětů,
 viz <https://rust-lang.github.io/mdBook/>.
 
-0. Tvorba prvního předmětu. Umístění předmětu může být libovolné, pokud splňuje tyto tři podmínky:
-	0. je ve podsložce složky `src` (teoreticky, v `src` by to fungovalo také, ale potom by mohl existovat jen jeden předmět)
-	0. není v podsložce jiného předmětu
-	0. složka ve které je obsahuje soubor `subject.md`
+3. Tvorba prvního předmětu. Umístění předmětu může být libovolné, pokud splňuje tyto tři podmínky:
+	1. je ve podsložce složky `src` (teoreticky, v `src` by to fungovalo také, ale potom by mohl existovat jen jeden předmět)
+	2. není v podsložce jiného předmětu
+	3. složka ve které je obsahuje soubor `subject.md`
 
 ```sh
 mkdir src/predmety/predmet1
@@ -131,7 +131,7 @@ kak src/predmety/predmet1/subject.md # nebo libovolný jiný editor
 
 Následně je v souboru `subject.md` vytvořit header a nějaký počáteční obsah.
 
-```toml
+```markdown
 nazev = "Můj první předmět"
 zodpovedna_osoba = "Lukáš Hozda"
 # ↑ pokud možno, mělo by odpovídat jménu, emailu nebo usernamu některého vyučujícícho
@@ -151,6 +151,61 @@ Fusce a eros laoreet, dictum enim et, pellentesque erat.
 ```
 
 Na konci souboru by nemělo být nic, co by mohlo narušit výpis jednotlivých materiálů v předmětu.
+
+4. Dále je možné vytvořit první materiál tohoto předmětu
+
+```sh
+touch src/predmety/predmet1/material1.md
+kak src/predmety/predmet1/material1.md # nebo libovolný editor
+
+```
+
+Následně je zapotřebí vytvořit v souboru `material.md` hlavičku a počáteční obsah.
+
+```markdown
+nazev = "Můj první článek"
+tagy = ["tag1", "tag2", "tag3"]
+datum = "20.1.2019"  # dobrovolné a libovolné. Jelikož "datum" je singulár  od "data", lze použít jakkoliv :^)
+
++++
+
+# Můj první článek
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+In varius lacinia risus eu vehicula. Vestibulum consectetur
+feugiat dignissim. Mauris sed leo id lectus commodo egestas.
+Integer sed ligula quis lorem viverra fringilla lobortis at elit.
+Fusce a eros laoreet, dictum enim et, pellentesque erat.
+```
+
+5. Nyní nesmíme zapomenout zmínit tyto soubory v `SUMMARY.md` (viz návod u `mdbook`),
+jinak je `mdbook` a tudíž ani `cat-prep` neuvidí.
+Kočičková hierarchie je paralelní hierarchii `SUMMARY.md`, ale není špatný nápad
+reflektovat kočičkovou hierarchii v té kočičkové.
+
+```markdown
+...
+
+- [Předmět 1](./predmety/predmet1/subject.md)
+	- [Článek 1](./predmety/predmet1/material1.md)
+
+...
+```
+
+6. Nyní je možné knihu sestavit:
+
+```
+mdbook build
+```
+
+nebo spustit live-reload server pro další vývoj knihy:
+
+```
+mdbook serve
+```
+
+### Šablona
+Alternativně lze využít šablonu z repozitáře <https://github.com/gjk-cat/sablona>
 
 ## License
 
