@@ -59,7 +59,7 @@ pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 
 	let teachers = WalkDir::new("teachers")
 		.into_iter()
-		.map(|x| x.expect("failed to walk director - fatal error"))
+		.map(|x| x.expect("failed to walk directory - fatal error"))
 		.filter_map(|x| {
 			if x.file_name().to_string_lossy().ends_with(".toml")
 				&& x.file_type().is_file()
@@ -72,7 +72,7 @@ pub fn read_teacher_cards() -> Result<Vec<TeacherCard>, CatError> {
 		.map(|x| {
 			(
 				x.file_name().to_string_lossy().to_string(),
-				read_to_string(x.path()).expect("failed to open and file"),
+				read_to_string(x.path()).expect("failed to open and read file - fatal error"),
 			)
 		})
 		.map(|x| (x.0, toml::de::from_str::<TeacherCard>(&x.1)))
@@ -141,7 +141,7 @@ impl CatContext {
 	}
 
 	/// vygeneruje kontext dle knihy.
-	/// Tato funkce knihuju mutuje, protože odděluje headery
+	/// Tato funkce knihu mutuje, protože odděluje headery
 	/// od obsahu jednotlivých souborů
 	pub fn with_book(src: &mut Book) -> Result<CatContext, CatError> {
 		let (status, is_inside, error) = sh!("git rev-parse --is-inside-work-tree");
@@ -337,7 +337,10 @@ impl CatContext {
 					last_modified,
 					path: x._resolved_path.clone().unwrap(),
 					modified_resolved: None,
-					resolved_author: None,
+					resolved_author: teachers
+						.iter()
+						.find(|y| y.files_created.contains(&x._resolved_path.clone().unwrap()))
+						.map(|y| y.card.clone()),
 					subject_card: None,
 				};
 
