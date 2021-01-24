@@ -400,7 +400,7 @@ pub fn execute_renders(
 		if let BookItem::Chapter(c) = c {
 			let path = c.path.clone();
 
-			pending_renders.iter().filter(|x| x.site == path).for_each(|x| {
+			pending_renders.iter().filter(|x| x.site == path.clone().unwrap()).for_each(|x| {
 				match &x.render {
 					Prepend(s) => c.content = format!("{}\n{}", c.content, s),
 					Both(pre, post) =>
@@ -410,7 +410,7 @@ pub fn execute_renders(
 				}
 			});
 
-			pending_renders.retain(|x| x.site != c.path);
+			pending_renders.retain(|x| x.site != c.path.clone().unwrap());
 		}
 	});
 

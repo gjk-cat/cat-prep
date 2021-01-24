@@ -189,7 +189,7 @@ impl CatContext {
 		let subject_items = src
 			.iter()
 			.filter_map(|x| if let BookItem::Chapter(c) = x { Some(c) } else { None })
-			.filter(|x| x.path.to_str().unwrap().ends_with("subject.md"))
+			.filter(|x| x.path.clone().unwrap().to_str().unwrap().ends_with("subject.md"))
 			.cloned()
 			.collect::<Vec<_>>();
 
@@ -215,7 +215,7 @@ impl CatContext {
 						}
 					};
 
-					card._resolved_path = Some(c.path.clone());
+					card._resolved_path = c.path.clone();
 
 					subject_cards.push(card);
 				}
@@ -252,8 +252,10 @@ impl CatContext {
 		src.for_each_mut(|x| {
 			if let BookItem::Chapter(c) = x {
 				if subjects.iter().any(|y| {
-					c.path.starts_with(&y.path_root)
-						&& c.path.file_name().map(|x| x.to_str().unwrap())
+					let path = c.path.clone().unwrap();
+
+					path.starts_with(&y.path_root)
+						&& path.file_name().map(|x| x.to_str().unwrap())
 							!= Some("subject.md")
 				}) {
 					let (header, body) = match extract_header(&c.content) {
@@ -273,7 +275,7 @@ impl CatContext {
 						}
 					};
 
-					card._resolved_path = Some(c.path.clone());
+					card._resolved_path = Some(c.path.clone().unwrap());
 
 					article_cards.push(card);
 				}

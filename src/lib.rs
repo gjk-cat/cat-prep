@@ -67,7 +67,7 @@ impl Preprocessor for Cat {
 			Ok(c) => c,
 			Err(e) => {
 				eprintln!("[cat prep] failed to create cat context: {}", e);
-				return Err(e.to_string().into());
+				return Err(Error::msg(e.to_string()));
 			}
 		};
 
@@ -75,13 +75,13 @@ impl Preprocessor for Cat {
 			Ok(rs) => rs,
 			Err(e) => {
 				eprintln!("[cat prep] failed to prepare renders of cat content: {}", e);
-				return Err(e.to_string().into());
+				return Err(Error::msg(e.to_string()));
 			}
 		};
 
 		if let Err(e) = render::execute_renders(renders, &mut book) {
 			eprintln!("[cat prep] failed to prepare renders of cat content: {}", e);
-			return Err(e.to_string().into());
+			return Err(Error::msg(e.to_string()));
 		}
 
 		dbg!("{:#?}", context);
